@@ -1,0 +1,41 @@
+# WordPress
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+error_log
+debug.log
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*~
+
+# Node modules (if using npm/yarn)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build files
+/dist/
+/build/
+
+# ACF JSON exports (generated dynamically)
+acf-json/*.json
+
+# Backup files
+*.backup
+*.bak
+*.sql
+
+# Environment files
+.env
+.env.local
