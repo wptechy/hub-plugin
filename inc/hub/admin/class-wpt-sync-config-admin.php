@@ -66,16 +66,16 @@ class WPT_Sync_Config_Admin {
 
         wp_enqueue_style(
             'wpt-sync-config',
-            WPT_PLUGIN_URL . 'assets/css/sync-config.css',
+            WPT_HUB_URL . 'assets/css/sync-config.css',
             array(),
-            WPT_VERSION
+            WPT_HUB_VERSION
         );
 
         wp_enqueue_script(
             'wpt-sync-config',
-            WPT_PLUGIN_URL . 'assets/js/sync-config-v2.js',
+            WPT_HUB_URL . 'assets/js/sync-config-v2.js',
             array('jquery'),
-            WPT_VERSION,
+            WPT_HUB_VERSION,
             true
         );
 

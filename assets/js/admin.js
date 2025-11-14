@@ -1,187 +1,197 @@
 /**
- * WPT Hub Plugin - Admin JavaScript
+ * WPT Platform Admin JavaScript
+ * 
+ * @package WPT_Optica_Core
  */
 
 (function($) {
     'use strict';
 
-    const WPT_Admin = {
+    const WPTAdmin = {
+        
+        /**
+         * Initialize
+         */
         init: function() {
             this.bindEvents();
-            this.initTabs();
-            this.initModals();
+            this.initSlugGeneration();
+            this.initConfirmDialogs();
         },
 
+        /**
+         * Bind events
+         */
         bindEvents: function() {
-            // Confirm delete actions
-            $('.wpt-delete-btn').on('click', function(e) {
-                if (!confirm(wptAdmin.i18n.confirmDelete)) {
+            // Add any global event listeners here
+        },
+
+        /**
+         * Auto-generate slug from name
+         */
+        initSlugGeneration: function() {
+            const $nameField = $('#name');
+            const $slugField = $('#slug');
+
+            if ($nameField.length && $slugField.length && !$slugField.val()) {
+                $nameField.on('input', function() {
+                    const slug = $(this).val()
+                        .toLowerCase()
+                        .replace(/[^a-z0-9\s-]/g, '')
+                        .replace(/\s+/g, '-')
+                        .replace(/-+/g, '-')
+                        .trim();
+                    $slugField.val(slug);
+                });
+            }
+        },
+
+        /**
+         * Confirm dialogs for dangerous actions
+         */
+        initConfirmDialogs: function() {
+            $('[data-confirm]').on('click', function(e) {
+                const message = $(this).data('confirm');
+                if (!confirm(message)) {
                     e.preventDefault();
                     return false;
                 }
             });
-
-            // Handle AJAX forms
-            $('.wpt-ajax-form').on('submit', this.handleAjaxForm);
-
-            // Module activation
-            $('.wpt-activate-module').on('click', this.activateModule);
-            $('.wpt-deactivate-module').on('click', this.deactivateModule);
         },
 
-        initTabs: function() {
-            $('.wpt-tabs a').on('click', function(e) {
-                e.preventDefault();
-                const target = $(this).attr('href');
-
-                $('.wpt-tabs a').removeClass('active');
-                $(this).addClass('active');
-
-                $('.wpt-tab-content').hide();
-                $(target).show();
-            });
-
-            // Show first tab by default
-            $('.wpt-tabs a:first').click();
-        },
-
-        initModals: function() {
-            $('.wpt-modal-trigger').on('click', function(e) {
-                e.preventDefault();
-                const modalId = $(this).data('modal');
-                $('#' + modalId).fadeIn();
-            });
-
-            $('.wpt-modal-close, .wpt-modal-overlay').on('click', function() {
-                $(this).closest('.wpt-modal').fadeOut();
-            });
-        },
-
-        handleAjaxForm: function(e) {
-            e.preventDefault();
-            const $form = $(this);
-            const $submit = $form.find('[type="submit"]');
-            const originalText = $submit.text();
-
-            $.ajax({
-                url: wptAdmin.ajaxUrl,
-                type: 'POST',
-                data: $form.serialize(),
-                beforeSend: function() {
-                    $submit.prop('disabled', true).text('Saving...');
-                },
-                success: function(response) {
-                    if (response.success) {
-                        WPT_Admin.showNotice('success', wptAdmin.i18n.saved);
-                        if (response.data.reload) {
-                            location.reload();
-                        }
-                    } else {
-                        WPT_Admin.showNotice('error', response.data.message || wptAdmin.i18n.error);
-                    }
-                },
-                error: function() {
-                    WPT_Admin.showNotice('error', wptAdmin.i18n.error);
-                },
-                complete: function() {
-                    $submit.prop('disabled', false).text(originalText);
-                }
-            });
-        },
-
-        activateModule: function(e) {
-            e.preventDefault();
-            const $btn = $(this);
-            const moduleSlug = $btn.data('module');
-
-            $.ajax({
-                url: wptAdmin.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'wpt_activate_module',
-                    nonce: wptAdmin.nonce,
-                    module_slug: moduleSlug
-                },
-                beforeSend: function() {
-                    $btn.prop('disabled', true);
-                },
-                success: function(response) {
-                    if (response.success) {
-                        location.reload();
-                    } else {
-                        WPT_Admin.showNotice('error', response.data.message);
-                        $btn.prop('disabled', false);
-                    }
-                },
-                error: function() {
-                    WPT_Admin.showNotice('error', wptAdmin.i18n.error);
-                    $btn.prop('disabled', false);
-                }
-            });
-        },
-
-        deactivateModule: function(e) {
-            e.preventDefault();
-            const $btn = $(this);
-            const moduleSlug = $btn.data('module');
-
-            if (!confirm('Are you sure you want to deactivate this module?')) {
-                return;
-            }
-
-            $.ajax({
-                url: wptAdmin.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'wpt_deactivate_module',
-                    nonce: wptAdmin.nonce,
-                    module_slug: moduleSlug
-                },
-                beforeSend: function() {
-                    $btn.prop('disabled', true);
-                },
-                success: function(response) {
-                    if (response.success) {
-                        location.reload();
-                    } else {
-                        WPT_Admin.showNotice('error', response.data.message);
-                        $btn.prop('disabled', false);
-                    }
-                },
-                error: function() {
-                    WPT_Admin.showNotice('error', wptAdmin.i18n.error);
-                    $btn.prop('disabled', false);
-                }
-            });
-        },
-
-        showNotice: function(type, message) {
-            const $notice = $('<div class="wpt-notice wpt-notice-' + type + '">' + message + '</div>');
+        /**
+         * Show notification
+         */
+        showNotice: function(message, type = 'success') {
+            const $notice = $('<div class="notice notice-' + type + ' is-dismissible"><p>' + message + '</p></div>');
             $('.wrap > h1').after($notice);
-
+            
             setTimeout(function() {
                 $notice.fadeOut(function() {
                     $(this).remove();
                 });
-            }, 3000);
+            }, 5000);
         },
 
-        copyToClipboard: function(text) {
-            const $temp = $('<input>');
-            $('body').append($temp);
-            $temp.val(text).select();
-            document.execCommand('copy');
-            $temp.remove();
-            this.showNotice('success', 'Copied to clipboard!');
+        /**
+         * AJAX helper
+         */
+        ajax: function(action, data, successCallback, errorCallback) {
+            $.ajax({
+                url: wptAdmin.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: action,
+                    nonce: wptAdmin.nonce,
+                    ...data
+                },
+                success: function(response) {
+                    if (response.success) {
+                        if (typeof successCallback === 'function') {
+                            successCallback(response.data);
+                        }
+                    } else {
+                        if (typeof errorCallback === 'function') {
+                            errorCallback(response.data);
+                        } else {
+                            WPTAdmin.showNotice(response.data.message || wptAdmin.i18n.error, 'error');
+                        }
+                    }
+                },
+                error: function() {
+                    if (typeof errorCallback === 'function') {
+                        errorCallback();
+                    } else {
+                        WPTAdmin.showNotice(wptAdmin.i18n.error, 'error');
+                    }
+                }
+            });
         }
     };
 
-    // Initialize when DOM is ready
-    $(document).ready(function() {
-        WPT_Admin.init();
-    });
+    /**
+     * Tenants Management
+     */
+    const WPTTenants = {
+        
+        init: function() {
+            this.bindEvents();
+        },
 
-    // Expose to window
-    window.WPT_Admin = WPT_Admin;
+        bindEvents: function() {
+            // Add tenant-specific functionality here
+        }
+    };
+
+    /**
+     * Modules Management
+     */
+    const WPTModules = {
+        
+        init: function() {
+            this.bindEvents();
+        },
+
+        bindEvents: function() {
+            // Add module-specific functionality here
+        }
+    };
+
+    /**
+     * Releases Management
+     */
+    const WPTReleases = {
+        
+        init: function() {
+            this.bindEvents();
+        },
+
+        bindEvents: function() {
+            // Add release-specific functionality here
+        }
+    };
+
+    /**
+     * Analytics
+     */
+    const WPTAnalytics = {
+        
+        init: function() {
+            this.initChart();
+        },
+
+        initChart: function() {
+            // Chart initialization
+            // Can integrate Chart.js library here for production
+            const canvas = document.getElementById('wpt-analytics-chart');
+            if (!canvas) return;
+
+            // Placeholder for chart implementation
+            console.log('Analytics chart ready for initialization');
+        }
+    };
+
+    /**
+     * Document Ready
+     */
+    $(document).ready(function() {
+        WPTAdmin.init();
+
+        // Initialize page-specific modules
+        if ($('.wpt-tenants').length) {
+            WPTTenants.init();
+        }
+
+        if ($('.wpt-modules').length) {
+            WPTModules.init();
+        }
+
+        if ($('.wpt-releases').length) {
+            WPTReleases.init();
+        }
+
+        if ($('.wpt-analytics').length) {
+            WPTAnalytics.init();
+        }
+    });
 
 })(jQuery);

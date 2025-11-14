@@ -1,0 +1,289 @@
+/**
+ * WPT Sync Configuration Admin Styles
+ *
+ * @package WPT_Optica_Core
+ * @since 1.0.0
+ */
+
+.wpt-sync-config-page {
+    max-width: 1200px;
+}
+
+.wpt-config-section {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.wpt-config-section h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    color: #1d2327;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.wpt-config-section .description {
+    margin-bottom: 15px;
+    color: #646970;
+}
+
+.wpt-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.wpt-checkbox-item {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+}
+
+.wpt-checkbox-item:hover {
+    border-color: #2271b1;
+    background: #f6f7f7;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.wpt-checkbox-item input[type="checkbox"] {
+    margin: 0 8px 0 0;
+    vertical-align: middle;
+}
+
+.wpt-checkbox-item .item-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.wpt-checkbox-item .item-label strong {
+    color: #1d2327;
+    font-weight: 600;
+}
+
+.wpt-checkbox-item .item-slug {
+    color: #646970;
+    font-size: 12px;
+    font-family: monospace;
+    background: #f6f7f7;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.wpt-checkbox-item .item-description {
+    margin-top: 6px;
+    margin-left: 24px;
+    color: #646970;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.wpt-field-groups-container {
+    margin-top: 20px;
+}
+
+.wpt-field-group-item {
+    margin-bottom: 15px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 15px;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+
+.wpt-field-group-item.active {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.wpt-field-group-item .group-checkbox {
+    margin-bottom: 0;
+    border: none;
+    padding: 0;
+}
+
+.wpt-field-group-item .group-checkbox:hover {
+    background: transparent;
+    box-shadow: none;
+}
+
+.wpt-fields-container {
+    margin-left: 30px;
+    margin-top: 15px;
+    padding: 15px;
+    background: #f6f7f7;
+    border-radius: 4px;
+    border: 1px solid #e5e5e5;
+}
+
+.fields-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #646970;
+}
+
+.fields-loading .spinner {
+    float: none;
+    margin: 0;
+}
+
+.fields-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 10px;
+}
+
+.wpt-field-item {
+    font-size: 13px;
+    padding: 8px 10px;
+}
+
+.wpt-field-item .item-label {
+    font-size: 13px;
+}
+
+.wpt-config-actions {
+    margin: 30px 0;
+    padding: 20px;
+    background: #f6f7f7;
+    border-radius: 4px;
+    border: 1px solid #dcdcde;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.wpt-config-actions .button-large {
+    height: 40px;
+    line-height: 40px;
+    padding: 0 20px;
+}
+
+.wpt-config-actions .dashicons {
+    margin-right: 5px;
+    vertical-align: middle;
+    line-height: 40px;
+}
+
+.save-status,
+.push-status {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.save-status.success,
+.push-status.success {
+    color: #00a32a;
+}
+
+.save-status.success::before,
+.push-status.success::before {
+    content: "\2713 ";
+    font-weight: bold;
+}
+
+.save-status.error,
+.push-status.error {
+    color: #d63638;
+}
+
+.save-status.error::before,
+.push-status.error::before {
+    content: "\2717 ";
+    font-weight: bold;
+}
+
+.wpt-push-section {
+    background: #f0f6fc;
+    border-color: #c3e0f7;
+}
+
+.wpt-push-section h2 {
+    color: #135e96;
+}
+
+.wpt-push-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.wpt-push-controls label {
+    margin: 0;
+    font-weight: 600;
+}
+
+.wpt-push-controls select {
+    min-width: 300px;
+    height: 40px;
+}
+
+.wpt-push-controls .dashicons {
+    margin-right: 5px;
+    vertical-align: middle;
+    line-height: 40px;
+}
+
+.wpt-push-info {
+    margin-top: 20px;
+}
+
+.wpt-push-info .notice {
+    margin: 0;
+}
+
+.wpt-push-info ul {
+    margin: 10px 0 0 20px;
+    list-style: disc;
+}
+
+.wpt-push-info li {
+    margin: 5px 0;
+    color: #1d2327;
+}
+
+.no-items {
+    color: #646970;
+    font-style: italic;
+    padding: 20px;
+    text-align: center;
+}
+
+.no-items.error {
+    color: #d63638;
+}
+
+/* Responsive adjustments */
+@media (max-width: 782px) {
+    .wpt-checkbox-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fields-list {
+        grid-template-columns: 1fr;
+    }
+
+    .wpt-push-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .wpt-push-controls select {
+        min-width: 100%;
+    }
+}

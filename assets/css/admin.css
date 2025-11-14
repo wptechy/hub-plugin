@@ -1,76 +1,230 @@
 /**
- * WPT Hub Plugin - Admin Styles
+ * WPT Platform Admin Styles
+ * 
+ * @package WPT_Optica_Core
  */
 
-/* Dashboard Cards */
-.wpt-dashboard {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    margin: 20px 0;
+/* ===================================
+   GENERAL LAYOUT
+   =================================== */
+
+.wpt-dashboard,
+.wpt-tenants,
+.wpt-modules,
+.wpt-releases,
+.wpt-analytics,
+.wpt-settings {
+    max-width: 1400px;
 }
 
-.wpt-card {
+.required {
+    color: #dc3232;
+}
+
+/* ===================================
+   STATISTICS CARDS
+   =================================== */
+
+.wpt-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 25px 0;
+}
+
+.wpt-stat-card {
     background: #fff;
-    border: 1px solid #ccd0d4;
+    border: 1px solid #c3c4c7;
     border-radius: 4px;
     padding: 20px;
-    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    transition: box-shadow 0.2s;
 }
 
-.wpt-card h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 18px;
-    font-weight: 600;
+.wpt-stat-card:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,.08);
 }
 
-.wpt-card-stat {
-    font-size: 32px;
-    font-weight: 700;
+.wpt-stat-icon {
+    font-size: 48px;
     color: #2271b1;
-    margin: 10px 0;
+    flex-shrink: 0;
 }
 
-.wpt-card-label {
+.wpt-stat-icon .dashicons {
+    width: 48px;
+    height: 48px;
+    font-size: 48px;
+}
+
+.wpt-stat-content {
+    flex: 1;
+}
+
+.wpt-stat-content h3 {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    font-weight: 400;
     color: #646970;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
-/* Tables */
-.wpt-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #fff;
-    margin: 20px 0;
-}
-
-.wpt-table th {
-    background: #f6f7f7;
-    padding: 12px;
-    text-align: left;
+.wpt-stat-number {
+    font-size: 32px;
     font-weight: 600;
-    border-bottom: 2px solid #ccd0d4;
+    color: #1d2327;
+    line-height: 1.2;
 }
 
-.wpt-table td {
-    padding: 12px;
-    border-bottom: 1px solid #e0e0e0;
+.wpt-stat-details {
+    font-size: 12px;
+    color: #646970;
+    margin-top: 5px;
 }
 
-.wpt-table tr:hover {
+.wpt-stat-details span {
+    margin-right: 10px;
+}
+
+.wpt-stat-active {
+    color: #46b450;
+}
+
+.wpt-stat-pending {
+    color: #f0a800;
+}
+
+.wpt-stat-suspended {
+    color: #dc3232;
+}
+
+/* ===================================
+   DASHBOARD GRID
+   =================================== */
+
+.wpt-dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-top: 25px;
+}
+
+@media (max-width: 1280px) {
+    .wpt-dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.wpt-dashboard-section {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.wpt-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #c3c4c7;
+}
+
+.wpt-section-header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.wpt-dashboard-section .wp-list-table {
+    border: none;
+    box-shadow: none;
+}
+
+/* ===================================
+   QUICK ACTIONS
+   =================================== */
+
+.wpt-quick-actions {
+    padding: 15px 20px;
+    display: grid;
+    gap: 10px;
+}
+
+.wpt-action-button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
     background: #f6f7f7;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    color: #2271b1;
+    text-decoration: none;
+    transition: all 0.2s;
 }
 
-/* Status Badges */
-.wpt-status {
+.wpt-action-button:hover {
+    background: #2271b1;
+    color: #fff;
+    border-color: #2271b1;
+}
+
+.wpt-action-button .dashicons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+}
+
+/* ===================================
+   SYSTEM STATUS
+   =================================== */
+
+.wpt-system-status {
+    padding: 15px 20px;
+}
+
+.wpt-status-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.wpt-status-item:last-child {
+    border-bottom: none;
+}
+
+.wpt-status-label {
+    font-weight: 500;
+}
+
+.wpt-status-value {
+    color: #646970;
+}
+
+.wpt-status-ok {
+    color: #46b450;
+    font-weight: 500;
+}
+
+.wpt-status-error {
+    color: #dc3232;
+    font-weight: 500;
+}
+
+/* ===================================
+   STATUS BADGES
+   =================================== */
+
+.wpt-status-badge {
     display: inline-block;
     padding: 4px 10px;
     border-radius: 3px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 500;
+    line-height: 1.4;
 }
 
 .wpt-status-active {
@@ -83,190 +237,329 @@
     color: #856404;
 }
 
-.wpt-status-suspended {
+.wpt-status-suspended,
+.wpt-status-failed,
+.wpt-status-inactive {
     background: #f8d7da;
     color: #721c24;
 }
 
-/* Buttons */
-.wpt-btn {
+.wpt-status-cancelled {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.wpt-status-coming_soon {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+/* ===================================
+   TYPE BADGES
+   =================================== */
+
+.wpt-type-badge {
     display: inline-block;
-    padding: 8px 16px;
+    padding: 4px 10px;
     border-radius: 3px;
-    text-decoration: none;
-    font-size: 13px;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.wpt-btn-primary {
-    background: #2271b1;
-    color: #fff;
+.wpt-type-plugin {
+    background: #e7f3ff;
+    color: #0066cc;
 }
 
-.wpt-btn-primary:hover {
-    background: #135e96;
-    color: #fff;
+.wpt-type-theme {
+    background: #f3e7ff;
+    color: #6600cc;
 }
 
-.wpt-btn-secondary {
-    background: #f0f0f1;
-    color: #2c3338;
+.wpt-type-module {
+    background: #e7ffe7;
+    color: #00aa00;
 }
 
-.wpt-btn-secondary:hover {
-    background: #dcdcde;
-}
+/* ===================================
+   MODULES GRID
+   =================================== */
 
-.wpt-btn-danger {
-    background: #d63638;
-    color: #fff;
-}
-
-.wpt-btn-danger:hover {
-    background: #c32f31;
-}
-
-/* Form Fields */
-.wpt-form-group {
-    margin-bottom: 20px;
-}
-
-.wpt-form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-}
-
-.wpt-form-group input[type="text"],
-.wpt-form-group input[type="email"],
-.wpt-form-group input[type="url"],
-.wpt-form-group select,
-.wpt-form-group textarea {
-    width: 100%;
-    max-width: 500px;
-    padding: 8px 12px;
-    border: 1px solid #8c8f94;
-    border-radius: 4px;
-}
-
-.wpt-form-group textarea {
-    min-height: 100px;
-}
-
-/* Module Cards */
 .wpt-modules-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
-    margin: 20px 0;
+    margin-top: 20px;
 }
 
 .wpt-module-card {
     background: #fff;
-    border: 1px solid #ccd0d4;
+    border: 1px solid #c3c4c7;
     border-radius: 4px;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.2s;
 }
 
-.wpt-module-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
+.wpt-module-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,.1);
+    transform: translateY(-2px);
 }
 
 .wpt-module-icon {
-    font-size: 40px;
+    text-align: center;
+    font-size: 48px;
+    color: #2271b1;
+    margin-bottom: 10px;
 }
 
-.wpt-module-title {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0;
+.wpt-module-icon .dashicons {
+    width: 48px;
+    height: 48px;
+    font-size: 48px;
+}
+
+.wpt-module-header h3 {
+    margin: 0 0 5px 0;
+    font-size: 18px;
+}
+
+.wpt-module-category {
+    font-size: 12px;
+    color: #646970;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .wpt-module-description {
+    flex: 1;
     color: #646970;
-    font-size: 13px;
-    margin: 10px 0;
+    line-height: 1.6;
 }
 
-.wpt-module-footer {
+.wpt-module-price {
+    font-size: 18px;
+    color: #1d2327;
+    padding: 10px 0;
+    border-top: 1px solid #f0f0f1;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.wpt-module-status {
+    text-align: center;
+}
+
+.wpt-module-actions {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #e0e0e0;
+    gap: 10px;
 }
 
-/* Analytics */
-.wpt-analytics-chart {
-    background: #fff;
-    padding: 20px;
-    border: 1px solid #ccd0d4;
-    border-radius: 4px;
+.wpt-module-actions .button {
+    flex: 1;
+}
+
+.wpt-module-inactive {
+    opacity: 0.6;
+}
+
+.wpt-module-coming_soon {
+    opacity: 0.8;
+}
+
+/* ===================================
+   ANALYTICS
+   =================================== */
+
+.wpt-analytics-filters {
     margin: 20px 0;
+    display: flex;
+    gap: 10px;
 }
 
-.wpt-analytics-chart h3 {
+.wpt-chart-section {
+    grid-column: 1 / -1;
+}
+
+.wpt-chart-section canvas {
+    max-width: 100%;
+    height: auto !important;
+}
+
+/* ===================================
+   RELEASE DETAILS
+   =================================== */
+
+.wpt-release-details h2 {
     margin-top: 0;
 }
 
-/* Loading States */
-.wpt-loading {
+.wpt-changelog {
+    background: #f6f7f7;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    line-height: 1.6;
+}
+
+/* ===================================
+   STATS ROW
+   =================================== */
+
+.wpt-stats-row {
+    display: flex;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.wpt-stat-box {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
     text-align: center;
-    padding: 40px;
+}
+
+.wpt-stat-box .wpt-stat-number {
+    font-size: 36px;
+    font-weight: 600;
+    color: #2271b1;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.wpt-stat-box .wpt-stat-label {
+    font-size: 14px;
     color: #646970;
 }
 
-.wpt-spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #2271b1;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+/* ===================================
+   MODULE DETAILS
+   =================================== */
+
+.wpt-module-details {
+    background: #fff;
+    padding: 20px;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.wpt-module-header-large {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #c3c4c7;
 }
 
-/* Notices */
-.wpt-notice {
-    padding: 12px;
-    margin: 15px 0;
-    border-left: 4px solid #72aee6;
-    background: #f0f6fc;
+.wpt-module-header-large .dashicons {
+    width: 64px;
+    height: 64px;
+    font-size: 64px;
+    color: #2271b1;
 }
 
-.wpt-notice-success {
-    border-color: #00a32a;
-    background: #f0f9f1;
+.wpt-module-header-large h2 {
+    margin: 0;
+    font-size: 28px;
 }
 
-.wpt-notice-error {
-    border-color: #d63638;
-    background: #fcf0f1;
+.wpt-module-header-large p {
+    margin: 5px 0 0 0;
+    color: #646970;
 }
 
-.wpt-notice-warning {
-    border-color: #dba617;
-    background: #fcf9e8;
+/* ===================================
+   MAINTENANCE ACTIONS
+   =================================== */
+
+.wpt-maintenance-actions {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
 }
 
-/* Responsive */
+.wpt-maintenance-actions p {
+    margin: 10px 0;
+}
+
+/* ===================================
+   RESPONSIVE
+   =================================== */
+
 @media (max-width: 782px) {
-    .wpt-dashboard {
+    .wpt-stats-grid {
         grid-template-columns: 1fr;
     }
 
     .wpt-modules-grid {
         grid-template-columns: 1fr;
     }
+
+    .wpt-analytics-filters {
+        flex-direction: column;
+    }
+
+    .wpt-stats-row {
+        flex-direction: column;
+    }
+
+    .wpt-module-actions {
+        flex-direction: column;
+    }
+}
+
+/* ===================================
+   LOADING STATES
+   =================================== */
+
+.wpt-loading {
+    text-align: center;
+    padding: 40px;
+    color: #646970;
+}
+
+.wpt-loading::before {
+    content: '';
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border: 3px solid #f0f0f1;
+    border-top-color: #2271b1;
+    border-radius: 50%;
+    animation: wpt-spin 0.6s linear infinite;
+}
+
+@keyframes wpt-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ===================================
+   NOTICES
+   =================================== */
+
+.wpt-notice {
+    background: #fff;
+    border-left: 4px solid #2271b1;
+    padding: 12px;
+    margin: 15px 0;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.wpt-notice-success {
+    border-left-color: #46b450;
+}
+
+.wpt-notice-error {
+    border-left-color: #dc3232;
+}
+
+.wpt-notice-warning {
+    border-left-color: #f0a800;
 }
