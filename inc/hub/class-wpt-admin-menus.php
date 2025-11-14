@@ -105,16 +105,16 @@ class WPT_Admin_Menus {
 
         wp_enqueue_style(
             'wpt-admin',
-            WPT_CORE_URL . 'assets/css/admin.css',
+            WPT_HUB_URL . 'assets/css/admin.css',
             array(),
-            WPT_CORE_VERSION
+            WPT_HUB_VERSION
         );
 
         wp_enqueue_script(
             'wpt-admin',
-            WPT_CORE_URL . 'assets/js/admin.js',
+            WPT_HUB_URL . 'assets/js/admin.js',
             array('jquery'),
-            WPT_CORE_VERSION,
+            WPT_HUB_VERSION,
             true
         );
 
@@ -133,42 +133,42 @@ class WPT_Admin_Menus {
      * Render Dashboard page
      */
     public function render_dashboard() {
-        require_once WPT_CORE_DIR . 'inc/hub/admin/views/dashboard.php';
+        require_once WPT_HUB_DIR . 'inc/hub/admin/views/dashboard.php';
     }
 
     /**
      * Render Tenants page
      */
     public function render_tenants() {
-        require_once WPT_CORE_DIR . 'inc/hub/admin/views/tenants.php';
+        require_once WPT_HUB_DIR . 'inc/hub/admin/views/tenants.php';
     }
 
     /**
      * Render Modules page
      */
     public function render_modules() {
-        require_once WPT_CORE_DIR . 'inc/hub/admin/views/modules.php';
+        require_once WPT_HUB_DIR . 'inc/hub/admin/views/modules.php';
     }
 
     /**
      * Render Releases page
      */
     public function render_releases() {
-        require_once WPT_CORE_DIR . 'inc/hub/admin/views/releases.php';
+        require_once WPT_HUB_DIR . 'inc/hub/admin/views/releases.php';
     }
 
     /**
      * Render Analytics page
      */
     public function render_analytics() {
-        require_once WPT_CORE_DIR . 'inc/hub/admin/views/analytics.php';
+        require_once WPT_HUB_DIR . 'inc/hub/admin/views/analytics.php';
     }
 
     /**
      * Render Settings page
      */
     public function render_settings() {
-        require_once WPT_CORE_DIR . 'inc/hub/admin/views/settings.php';
+        require_once WPT_HUB_DIR . 'inc/hub/admin/views/settings.php';
     }
 
     /**
