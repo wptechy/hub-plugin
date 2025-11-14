@@ -118,7 +118,7 @@ class WPT_Sync_Config_Admin {
         // Get ACF field groups
         $field_groups = $this->get_acf_field_groups();
 
-        include WPT_PLUGIN_DIR . 'inc/hub/admin/views/sync-config-v2.php';
+        include WPT_HUB_DIR . 'inc/hub/admin/views/sync-config-v2.php';
     }
 
     /**
