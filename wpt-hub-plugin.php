@@ -90,6 +90,9 @@ final class WPT_Hub_Plugin {
         // API Server
         require_once WPT_HUB_DIR . 'inc/hub/api/class-wpt-api-server.php';
 
+        // Quota API
+        require_once WPT_HUB_DIR . 'inc/hub/api/class-wpt-quota-api.php';
+
         // Admin Menus
         if (is_admin()) {
             require_once WPT_HUB_DIR . 'inc/hub/class-wpt-admin-menus.php';
