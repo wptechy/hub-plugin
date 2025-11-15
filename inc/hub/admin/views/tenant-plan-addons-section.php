@@ -12,8 +12,8 @@ if (!defined('ABSPATH')) {
 
 global $wpdb;
 
-// Get tenant data
-$tenant_id = isset($_GET['tenant']) ? intval($_GET['tenant']) : 0;
+// Get tenant data (using 'id' parameter from URL, consistent with tenants.php)
+$tenant_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $tenant = WPT_Tenant_Manager::get_tenant($tenant_id);
 
 if (!$tenant) {
