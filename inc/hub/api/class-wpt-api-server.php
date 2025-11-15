@@ -210,6 +210,8 @@ class WPT_API_Server {
                 m.title as name,
                 m.slug,
                 m.description,
+                m.short_description,
+                m.long_description,
                 m.logo,
                 m.category_id,
                 m.price,

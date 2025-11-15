@@ -43,6 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['wpt_module_nonce']) &
         'title' => sanitize_text_field($_POST['title']),
         'slug' => sanitize_title($_POST['slug']),
         'description' => wp_kses_post($_POST['description']),
+        'short_description' => sanitize_text_field($_POST['short_description']),
+        'long_description' => wp_kses_post($_POST['long_description']),
         'category_id' => intval($_POST['category_id']),
         'logo' => esc_url_raw($_POST['logo']),
         'price' => floatval($_POST['price']),
@@ -55,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['wpt_module_nonce']) &
         $wpdb->insert(
             $wpdb->prefix . 'wpt_available_modules',
             $module_data,
-            array('%s', '%s', '%s', '%d', '%s', '%f', '%s', '%d', '%s')
+            array('%s', '%s', '%s', '%s', '%s', '%d', '%s', '%f', '%s', '%d', '%s')
         );
         $module_id = $wpdb->insert_id;
 
@@ -69,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['wpt_module_nonce']) &
             $wpdb->prefix . 'wpt_available_modules',
             $module_data,
             array('id' => $module_id),
-            array('%s', '%s', '%s', '%d', '%s', '%f', '%s', '%d', '%s'),
+            array('%s', '%s', '%s', '%s', '%s', '%d', '%s', '%f', '%s', '%d', '%s'),
             array('%d')
         );
 
@@ -237,10 +239,41 @@ if (!$is_new) {
                 </tr>
                 <tr>
                     <th scope="row">
-                        <label for="description"><?php _e('Description', 'wpt-optica-core'); ?></label>
+                        <label for="description"><?php _e('Description (Internal)', 'wpt-optica-core'); ?></label>
                     </th>
                     <td>
-                        <textarea id="description" name="description" rows="5" class="large-text"><?php echo isset($module) ? esc_textarea($module->description) : ''; ?></textarea>
+                        <textarea id="description" name="description" rows="3" class="large-text"><?php echo isset($module) ? esc_textarea($module->description) : ''; ?></textarea>
+                        <p class="description"><?php _e('Descriere internă pentru managementul modulelor', 'wpt-optica-core'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="short_description"><?php _e('Short Description', 'wpt-optica-core'); ?> <span class="required">*</span></label>
+                    </th>
+                    <td>
+                        <input type="text" id="short_description" name="short_description" class="large-text" maxlength="255"
+                               value="<?php echo isset($module) ? esc_attr($module->short_description) : ''; ?>" required>
+                        <p class="description"><?php _e('Descriere scurtă (max 255 caractere) - afișată pe cardul modulului în site-ul tenant', 'wpt-optica-core'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="long_description"><?php _e('Long Description', 'wpt-optica-core'); ?></label>
+                    </th>
+                    <td>
+                        <?php
+                        $long_desc_content = isset($module) ? $module->long_description : '';
+                        wp_editor($long_desc_content, 'long_description', array(
+                            'textarea_name' => 'long_description',
+                            'textarea_rows' => 10,
+                            'media_buttons' => true,
+                            'teeny' => false,
+                            'tinymce' => array(
+                                'toolbar1' => 'formatselect,bold,italic,bullist,numlist,link,unlink,blockquote',
+                            ),
+                        ));
+                        ?>
+                        <p class="description"><?php _e('Descriere detaliată - afișată în modal când utilizatorul tenant dorește să vadă detalii complete despre modul', 'wpt-optica-core'); ?></p>
                     </td>
                 </tr>
                 <tr>
@@ -322,6 +355,8 @@ if (!$is_new) {
             <input type="hidden" name="title" value="<?php echo esc_attr($module->title); ?>">
             <input type="hidden" name="slug" value="<?php echo esc_attr($module->slug); ?>">
             <input type="hidden" name="description" value="<?php echo esc_attr($module->description); ?>">
+            <input type="hidden" name="short_description" value="<?php echo esc_attr($module->short_description); ?>">
+            <textarea name="long_description" style="display:none;"><?php echo esc_textarea($module->long_description); ?></textarea>
             <input type="hidden" name="category_id" value="<?php echo esc_attr($module->category_id); ?>">
             <input type="hidden" name="logo" value="<?php echo esc_url($module->logo); ?>">
             <input type="hidden" name="price" value="<?php echo esc_attr($module->price); ?>">
