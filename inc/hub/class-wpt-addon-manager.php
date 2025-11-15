@@ -35,17 +35,35 @@ class WPT_Addon_Manager {
     }
 
     /**
-     * Get addon price by ID
+     * Alias for get_addon_prices() - returns all addons
      *
-     * @param int $addon_id
+     * @return array
+     */
+    public static function get_addons() {
+        return self::get_addon_prices(true); // Only active addons
+    }
+
+    /**
+     * Get addon by slug or ID
+     *
+     * @param string|int $identifier Addon slug or ID
      * @return object|null
      */
-    public static function get_addon($addon_id) {
+    public static function get_addon($identifier) {
         global $wpdb;
 
+        // If numeric, search by ID
+        if (is_numeric($identifier)) {
+            return $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}wpt_addon_prices WHERE id = %d",
+                $identifier
+            ));
+        }
+
+        // Otherwise search by slug
         return $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}wpt_addon_prices WHERE id = %d",
-            $addon_id
+            "SELECT * FROM {$wpdb->prefix}wpt_addon_prices WHERE addon_slug = %s",
+            $identifier
         ));
     }
 

@@ -39,11 +39,11 @@ class WPT_Tenant_Addon_Ajax {
         }
 
         $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
-        $addon_key = isset($_POST['addon_key']) ? sanitize_text_field($_POST['addon_key']) : '';
+        $addon_slug = isset($_POST['addon_slug']) ? sanitize_text_field($_POST['addon_slug']) : '';
         $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
 
         // Validate
-        if (!$tenant_id || !$addon_key || $quantity < 1) {
+        if (!$tenant_id || !$addon_slug || $quantity < 1) {
             wp_send_json_error(array('message' => __('Date invalide.', 'wpt-optica-core')));
         }
 
@@ -54,7 +54,7 @@ class WPT_Tenant_Addon_Ajax {
         }
 
         // Check if addon exists
-        $addon = WPT_Addon_Manager::get_addon($addon_key);
+        $addon = WPT_Addon_Manager::get_addon($addon_slug);
         if (!$addon) {
             wp_send_json_error(array('message' => __('Add-on nu există.', 'wpt-optica-core')));
         }
@@ -63,9 +63,9 @@ class WPT_Tenant_Addon_Ajax {
         global $wpdb;
         $existing = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$wpdb->prefix}wpt_tenant_addons
-            WHERE tenant_id = %d AND addon_key = %s",
+            WHERE tenant_id = %d AND addon_slug = %s",
             $tenant_id,
-            $addon_key
+            $addon_slug
         ));
 
         if ($existing) {
@@ -77,12 +77,13 @@ class WPT_Tenant_Addon_Ajax {
             $wpdb->prefix . 'wpt_tenant_addons',
             array(
                 'tenant_id' => $tenant_id,
-                'addon_key' => $addon_key,
+                'addon_slug' => $addon_slug,
                 'quantity' => $quantity,
+                'addon_price' => $addon->monthly_price,
                 'status' => 'active',
                 'activated_at' => current_time('mysql'),
             ),
-            array('%d', '%s', '%d', '%s', '%s')
+            array('%d', '%s', '%d', '%f', '%s', '%s')
         );
 
         if ($result) {

@@ -29,9 +29,9 @@ if ($tenant->plan_id) {
 
 // Get active add-ons for this tenant
 $active_addons = $wpdb->get_results($wpdb->prepare(
-    "SELECT ta.*, ap.addon_key, ap.addon_name, ap.price, ap.unit
+    "SELECT ta.*, ap.addon_slug, ap.addon_name, ap.monthly_price as price
     FROM {$wpdb->prefix}wpt_tenant_addons ta
-    JOIN {$wpdb->prefix}wpt_addon_prices ap ON ta.addon_key = ap.addon_key
+    JOIN {$wpdb->prefix}wpt_addon_prices ap ON ta.addon_slug = ap.addon_slug
     WHERE ta.tenant_id = %d AND ta.status = 'active'
     ORDER BY ap.addon_name ASC",
     $tenant_id
@@ -218,19 +218,19 @@ $quota_features = WPT_Feature_Mapping_Manager::get_quota_features();
 
             <table class="form-table">
                 <tr>
-                    <th><label for="addon_key">Selectează Add-on</label></th>
+                    <th><label for="addon_slug">Selectează Add-on</label></th>
                     <td>
-                        <select id="addon_key" name="addon_key" class="regular-text" required>
+                        <select id="addon_slug" name="addon_slug" class="regular-text" required>
                             <option value="">— Selectează —</option>
                             <?php
-                            // Get already active addon keys
-                            $active_keys = array_column($active_addons, 'addon_key');
+                            // Get already active addon slugs
+                            $active_slugs = array_column($active_addons, 'addon_slug');
 
                             foreach ($all_addons as $addon):
                                 // Skip if already active
-                                if (in_array($addon->addon_key, $active_keys)) continue;
+                                if (in_array($addon->addon_slug, $active_slugs)) continue;
                             ?>
-                                <option value="<?php echo esc_attr($addon->addon_key); ?>"
+                                <option value="<?php echo esc_attr($addon->addon_slug); ?>"
                                         data-price="<?php echo esc_attr($addon->price); ?>"
                                         data-unit="<?php echo esc_attr($addon->unit); ?>">
                                     <?php echo esc_html($addon->addon_name); ?>
@@ -515,11 +515,11 @@ jQuery(document).ready(function($) {
 
         var $form = $(this);
         var $button = $('#wpt-activate-addon-btn');
-        var addonKey = $('#addon_key').val();
+        var addonSlug = $('#addon_slug').val();
         var quantity = $('#quantity').val();
         var tenantId = $('#tenant_id').val();
 
-        if (!addonKey) {
+        if (!addonSlug) {
             alert('Te rog selectează un add-on.');
             return;
         }
@@ -536,7 +536,7 @@ jQuery(document).ready(function($) {
                 action: 'wpt_add_tenant_addon',
                 nonce: '<?php echo wp_create_nonce("wpt_manage_tenant_addons"); ?>',
                 tenant_id: tenantId,
-                addon_key: addonKey,
+                addon_slug: addonSlug,
                 quantity: quantity
             },
             beforeSend: function() {

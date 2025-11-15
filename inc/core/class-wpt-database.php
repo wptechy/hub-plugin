@@ -111,6 +111,7 @@ class WPT_Database {
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             tenant_id BIGINT UNSIGNED NOT NULL,
             addon_slug VARCHAR(50) NOT NULL,
+            quantity INT UNSIGNED NOT NULL DEFAULT 1,
             addon_price DECIMAL(10,2) NOT NULL,
             status ENUM('active', 'suspended') DEFAULT 'active',
             activated_at DATETIME NOT NULL,
