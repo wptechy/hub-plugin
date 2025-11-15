@@ -65,6 +65,11 @@ if (function_exists('acf_get_field_groups')) {
             'key' => $group['key'],
         );
     }
+
+    // Sort alphabetically by title
+    uasort($field_groups, function($a, $b) {
+        return strcasecmp($a['title'], $b['title']);
+    });
 }
 ?>
 

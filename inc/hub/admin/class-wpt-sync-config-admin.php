@@ -180,6 +180,11 @@ class WPT_Sync_Config_Admin {
             );
         }
 
+        // Sort alphabetically by title
+        uasort($field_groups, function($a, $b) {
+            return strcasecmp($a['title'], $b['title']);
+        });
+
         return $field_groups;
     }
 
