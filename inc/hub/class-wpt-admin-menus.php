@@ -63,6 +63,16 @@ class WPT_Admin_Menus {
             array($this, 'render_modules')
         );
 
+        // Plans & Pricing
+        add_submenu_page(
+            'wpt-platform',
+            __('Plans & Pricing', 'wpt-optica-core'),
+            __('Plans & Pricing', 'wpt-optica-core'),
+            'manage_website_config',
+            'wpt-plans',
+            array($this, 'render_plans')
+        );
+
         // Releases Manager
         add_submenu_page(
             'wpt-platform',
@@ -148,6 +158,13 @@ class WPT_Admin_Menus {
      */
     public function render_modules() {
         require_once WPT_HUB_DIR . 'inc/hub/admin/views/modules.php';
+    }
+
+    /**
+     * Render Plans & Pricing page
+     */
+    public function render_plans() {
+        require_once WPT_HUB_DIR . 'inc/hub/admin/views/plans.php';
     }
 
     /**

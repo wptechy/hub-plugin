@@ -259,6 +259,9 @@ if ($action === 'edit' && $tenant_id > 0) {
                 <a href="#tab-modules" class="nav-tab" data-tab="modules">
                     <?php _e('Modules', 'wpt-optica-core'); ?>
                 </a>
+                <a href="#tab-plan-addons" class="nav-tab" data-tab="plan-addons">
+                    💰 <?php _e('Plan & Add-ons', 'wpt-optica-core'); ?>
+                </a>
             </h2>
 
             <!-- Tab Content -->
@@ -393,6 +396,14 @@ if ($action === 'edit' && $tenant_id > 0) {
                     <?php
                     // Include Tenant Modules Section
                     include WPT_HUB_DIR . 'inc/hub/admin/views/tenant-modules-section.php';
+                    ?>
+                </div>
+
+                <!-- Plan & Add-ons Tab -->
+                <div id="tab-plan-addons" class="wpt-tenant-tab-panel">
+                    <?php
+                    // Include Tenant Plan & Add-ons Section
+                    include WPT_HUB_DIR . 'inc/hub/admin/views/tenant-plan-addons-section.php';
                     ?>
                 </div>
             </div>

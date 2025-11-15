@@ -96,6 +96,7 @@ final class WPT_Hub_Plugin {
         // Admin Menus
         if (is_admin()) {
             require_once WPT_HUB_DIR . 'inc/hub/class-wpt-admin-menus.php';
+            require_once WPT_HUB_DIR . 'inc/hub/admin/class-wpt-tenant-addon-ajax.php';
         }
 
         // Tenant Management
@@ -103,6 +104,15 @@ final class WPT_Hub_Plugin {
 
         // Module Management
         require_once WPT_HUB_DIR . 'inc/hub/class-wpt-module-manager.php';
+
+        // Plan Management
+        require_once WPT_HUB_DIR . 'inc/hub/class-wpt-plan-manager.php';
+
+        // Addon Management
+        require_once WPT_HUB_DIR . 'inc/hub/class-wpt-addon-manager.php';
+
+        // Feature Mapping Management
+        require_once WPT_HUB_DIR . 'inc/hub/class-wpt-feature-mapping-manager.php';
 
         // Release Management
         require_once WPT_HUB_DIR . 'inc/hub/admin/class-wpt-release-manager.php';

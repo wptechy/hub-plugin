@@ -76,6 +76,36 @@ class WPT_Database {
         ) $charset_collate;";
         dbDelta($sql);
 
+        // Table: wpt_addon_prices (master list of available addons)
+        $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}wpt_addon_prices (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            addon_slug VARCHAR(100) NOT NULL UNIQUE,
+            addon_name VARCHAR(255) NOT NULL,
+            monthly_price DECIMAL(10,2) NOT NULL,
+            description TEXT,
+            is_active BOOLEAN DEFAULT 1,
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME DEFAULT NULL,
+            INDEX idx_slug (addon_slug)
+        ) $charset_collate;";
+        dbDelta($sql);
+
+        // Table: wpt_feature_mappings (defines what each feature means)
+        $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}wpt_feature_mappings (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            feature_key VARCHAR(100) NOT NULL UNIQUE,
+            feature_name VARCHAR(255) NOT NULL,
+            feature_type ENUM('post_type', 'taxonomy', 'capability', 'boolean', 'numeric') NOT NULL,
+            target_identifier VARCHAR(255),
+            is_quota BOOLEAN DEFAULT 0,
+            description TEXT,
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME DEFAULT NULL,
+            INDEX idx_key (feature_key),
+            INDEX idx_type (feature_type)
+        ) $charset_collate;";
+        dbDelta($sql);
+
         // Table: wpt_tenant_addons
         $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}wpt_tenant_addons (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -277,6 +307,8 @@ class WPT_Database {
             'wpt_tenant_modules',
             'wpt_module_availability',
             'wpt_tenant_addons',
+            'wpt_addon_prices',
+            'wpt_feature_mappings',
             'wpt_site_versions',
             'wpt_tenants',
             'wpt_plans',
