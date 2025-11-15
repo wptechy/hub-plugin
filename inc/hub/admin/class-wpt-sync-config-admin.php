@@ -39,6 +39,7 @@ class WPT_Sync_Config_Admin {
         add_action('wp_ajax_wpt_save_sync_config', array($this, 'save_sync_config'));
         add_action('wp_ajax_wpt_push_config_to_tenant', array($this, 'push_config_to_tenant'));
         add_action('wp_ajax_wpt_get_acf_fields', array($this, 'get_acf_fields_ajax'));
+        add_action('wp_ajax_wpt_push_modules_to_tenant', array($this, 'push_modules_to_tenant'));
     }
 
     /**
@@ -499,6 +500,143 @@ class WPT_Sync_Config_Admin {
         }
 
         return $json_files;
+    }
+
+    /**
+     * Push modules configuration to tenant (AJAX)
+     */
+    public function push_modules_to_tenant() {
+        check_ajax_referer('wpt_sync_config_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+        }
+
+        $tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
+        $enabled_modules = isset($_POST['enabled_modules']) ? array_map('intval', $_POST['enabled_modules']) : array();
+
+        if (empty($tenant_id)) {
+            wp_send_json_error(array('message' => 'Tenant ID is required'));
+        }
+
+        // Get tenant details
+        global $wpdb;
+        $tenant = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}wpt_tenants WHERE id = %d",
+            $tenant_id
+        ));
+
+        if (!$tenant) {
+            wp_send_json_error(array('message' => 'Tenant not found'));
+        }
+
+        // Update tenant_modules table
+        // First, get current modules for this tenant
+        $current_modules = $wpdb->get_col($wpdb->prepare(
+            "SELECT module_id FROM {$wpdb->prefix}wpt_tenant_modules WHERE tenant_id = %d",
+            $tenant_id
+        ));
+
+        // Deactivate modules not in enabled list
+        $to_deactivate = array_diff($current_modules, $enabled_modules);
+        foreach ($to_deactivate as $module_id) {
+            $wpdb->update(
+                $wpdb->prefix . 'wpt_tenant_modules',
+                array('status' => 'inactive'),
+                array('tenant_id' => $tenant_id, 'module_id' => $module_id),
+                array('%s'),
+                array('%d', '%d')
+            );
+        }
+
+        // Activate/insert enabled modules
+        foreach ($enabled_modules as $module_id) {
+            $exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM {$wpdb->prefix}wpt_tenant_modules
+                WHERE tenant_id = %d AND module_id = %d",
+                $tenant_id,
+                $module_id
+            ));
+
+            if ($exists) {
+                // Update to active
+                $wpdb->update(
+                    $wpdb->prefix . 'wpt_tenant_modules',
+                    array('status' => 'active'),
+                    array('tenant_id' => $tenant_id, 'module_id' => $module_id),
+                    array('%s'),
+                    array('%d', '%d')
+                );
+            } else {
+                // Insert new
+                $wpdb->insert(
+                    $wpdb->prefix . 'wpt_tenant_modules',
+                    array(
+                        'tenant_id' => $tenant_id,
+                        'module_id' => $module_id,
+                        'status' => 'active',
+                        'activated_at' => current_time('mysql')
+                    ),
+                    array('%d', '%d', '%s', '%s')
+                );
+            }
+        }
+
+        // Get module details for push
+        $modules_data = array();
+        if (!empty($enabled_modules)) {
+            $placeholders = implode(',', array_fill(0, count($enabled_modules), '%d'));
+            $modules = $wpdb->get_results($wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}wpt_available_modules WHERE id IN ($placeholders)",
+                ...$enabled_modules
+            ));
+
+            foreach ($modules as $module) {
+                $modules_data[] = array(
+                    'id' => $module->id,
+                    'slug' => $module->slug,
+                    'title' => $module->title,
+                    'description' => $module->description,
+                    'category_id' => $module->category_id,
+                    'price' => $module->price,
+                    'icon' => $module->icon
+                );
+            }
+        }
+
+        // Push to tenant via API
+        $api_url = trailingslashit($tenant->site_url) . 'wp-json/wpt/v1/modules-config';
+
+        $response = wp_remote_post($api_url, array(
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'X-WPT-API-Key' => $tenant->api_key
+            ),
+            'body' => json_encode(array(
+                'modules' => $modules_data
+            )),
+            'timeout' => 30,
+            'sslverify' => false
+        ));
+
+        if (is_wp_error($response)) {
+            wp_send_json_error(array(
+                'message' => 'Failed to push modules: ' . $response->get_error_message()
+            ));
+        }
+
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+
+        if (isset($body['success']) && $body['success']) {
+            wp_send_json_success(array(
+                'message' => 'Modules pushed successfully',
+                'response' => $body
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => isset($body['message']) ? $body['message'] : 'Unknown error pushing modules'
+            ));
+        }
     }
 }
 

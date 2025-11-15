@@ -256,6 +256,9 @@ if ($action === 'edit' && $tenant_id > 0) {
                 <a href="#tab-sync" class="nav-tab" data-tab="sync">
                     <?php _e('Sync Configuration', 'wpt-optica-core'); ?>
                 </a>
+                <a href="#tab-modules" class="nav-tab" data-tab="modules">
+                    <?php _e('Modules', 'wpt-optica-core'); ?>
+                </a>
             </h2>
 
             <!-- Tab Content -->
@@ -381,7 +384,15 @@ if ($action === 'edit' && $tenant_id > 0) {
                 <div id="tab-sync" class="wpt-tenant-tab-panel">
                     <?php
                     // Include Tenant Sync Configuration Section
-                    include WPT_PLUGIN_DIR . 'inc/hub/admin/views/tenant-sync-config-section.php';
+                    include WPT_HUB_DIR . 'inc/hub/admin/views/tenant-sync-config-section.php';
+                    ?>
+                </div>
+
+                <!-- Modules Tab -->
+                <div id="tab-modules" class="wpt-tenant-tab-panel">
+                    <?php
+                    // Include Tenant Modules Section
+                    include WPT_HUB_DIR . 'inc/hub/admin/views/tenant-modules-section.php';
                     ?>
                 </div>
             </div>
