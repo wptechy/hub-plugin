@@ -181,7 +181,62 @@ class WPT_API_Server {
     }
 
     public function get_modules($request) {
-        return $this->success_response(array('modules' => array()));
+        global $wpdb;
+
+        // Get tenant from request (set by verify_api_key)
+        $tenant = $request->get_param('_tenant');
+        $tenant_id = $tenant ? $tenant->id : 0;
+
+        // Get all categories
+        $categories = $wpdb->get_results("
+            SELECT
+                id,
+                name,
+                slug,
+                icon,
+                description,
+                sort_order
+            FROM {$wpdb->prefix}wpt_module_categories
+            ORDER BY sort_order ASC
+        ", ARRAY_A);
+
+        // Get all active modules with their categories
+        // Include modules that are either:
+        // 1. Available to all tenants (availability_mode = 'all_tenants')
+        // 2. Available to specific tenants AND this tenant has access (via wp_wpt_tenant_modules)
+        $modules = $wpdb->get_results($wpdb->prepare("
+            SELECT DISTINCT
+                m.id,
+                m.title as name,
+                m.slug,
+                m.description,
+                m.logo,
+                m.category_id,
+                m.price,
+                m.is_active,
+                m.availability_mode,
+                c.name as category_name,
+                c.slug as category_slug,
+                c.icon as category_icon
+            FROM {$wpdb->prefix}wpt_available_modules m
+            LEFT JOIN {$wpdb->prefix}wpt_module_categories c ON m.category_id = c.id
+            LEFT JOIN {$wpdb->prefix}wpt_tenant_modules tm ON m.id = tm.module_id AND tm.tenant_id = %d
+            WHERE m.is_active = 1
+              AND (
+                  m.availability_mode = 'all_tenants'
+                  OR (m.availability_mode = 'specific_tenants' AND tm.id IS NOT NULL)
+              )
+            ORDER BY c.sort_order, m.title
+        ", $tenant_id), ARRAY_A);
+
+        if (empty($modules)) {
+            $modules = array();
+        }
+
+        return $this->success_response(array(
+            'modules' => $modules,
+            'categories' => $categories
+        ));
     }
 
     public function activate_module($request) {

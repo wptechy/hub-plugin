@@ -130,42 +130,68 @@ class WPT_Default_Data {
 
         $categories = array(
             array(
-                'slug' => 'essential',
-                'name' => 'Esențiale',
-                'description' => 'Module esențiale pentru orice site optica',
+                'slug' => 'content-pages',
+                'name' => 'Content & Pagini',
+                'description' => 'Module pentru gestionarea conținutului și paginilor speciale',
+                'icon' => 'admin-page',
                 'sort_order' => 1,
             ),
             array(
-                'slug' => 'marketing',
-                'name' => 'Marketing',
-                'description' => 'Module pentru promovare și marketing',
+                'slug' => 'ecommerce',
+                'name' => 'E-commerce',
+                'description' => 'Module pentru magazin online și vânzări',
+                'icon' => 'cart',
                 'sort_order' => 2,
             ),
             array(
-                'slug' => 'analytics',
-                'name' => 'Analytics & Rapoarte',
-                'description' => 'Module pentru analiză și raportare',
+                'slug' => 'marketing-promotions',
+                'name' => 'Marketing & Promoții',
+                'description' => 'Module pentru marketing, promoții și campanii',
+                'icon' => 'megaphone',
                 'sort_order' => 3,
+            ),
+            array(
+                'slug' => 'analytics-reporting',
+                'name' => 'Analytics & Raportare',
+                'description' => 'Module pentru analiză și raportare',
+                'icon' => 'chart-bar',
+                'sort_order' => 4,
             ),
             array(
                 'slug' => 'integrations',
                 'name' => 'Integrări',
-                'description' => 'Integrări cu servicii externe',
-                'sort_order' => 4,
-            ),
-            array(
-                'slug' => 'advanced',
-                'name' => 'Avansate',
-                'description' => 'Module avansate pentru nevoi specifice',
+                'description' => 'Module pentru integrări cu servicii externe',
+                'icon' => 'networking',
                 'sort_order' => 5,
             ),
+            array(
+                'slug' => 'automation',
+                'name' => 'Automatizare',
+                'description' => 'Module pentru automatizare procese',
+                'icon' => 'update',
+                'sort_order' => 6,
+            ),
+            array(
+                'slug' => 'clients-crm',
+                'name' => 'Clienți & CRM',
+                'description' => 'Module pentru gestionarea clienților și relații',
+                'icon' => 'groups',
+                'sort_order' => 7,
+            ),
+            array(
+                'slug' => 'communication',
+                'name' => 'Comunicare',
+                'description' => 'Module pentru comunicare și notificări',
+                'icon' => 'email',
+                'sort_order' => 8,
+            )
         );
 
         foreach ($categories as $category) {
             $wpdb->insert(
                 $wpdb->prefix . 'wpt_module_categories',
                 $category,
-                array('%s', '%s', '%s', '%d')
+                array('%s', '%s', '%s', '%s', '%d')
             );
         }
     }
@@ -183,43 +209,95 @@ class WPT_Default_Data {
         }
 
         // Get category IDs
-        $cat_essential = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}wpt_module_categories WHERE slug = 'essential'");
-        $cat_marketing = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}wpt_module_categories WHERE slug = 'marketing'");
-        $cat_analytics = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}wpt_module_categories WHERE slug = 'analytics'");
+        $cat_content = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}wpt_module_categories WHERE slug = 'content-pages'");
+        $cat_ecommerce = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}wpt_module_categories WHERE slug = 'ecommerce'");
+        $cat_marketing = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}wpt_module_categories WHERE slug = 'marketing-promotions'");
+        $cat_analytics = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}wpt_module_categories WHERE slug = 'analytics-reporting'");
         $cat_integrations = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}wpt_module_categories WHERE slug = 'integrations'");
-        $cat_advanced = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}wpt_module_categories WHERE slug = 'advanced'");
+        $cat_automation = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}wpt_module_categories WHERE slug = 'automation'");
+        $cat_crm = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}wpt_module_categories WHERE slug = 'clients-crm'");
+        $cat_communication = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}wpt_module_categories WHERE slug = 'communication'");
 
         $modules = array(
-            // Essential
+            // Content & Pagini
             array(
-                'category_id' => $cat_essential,
-                'slug' => 'programari-online',
-                'title' => 'Programări Online',
-                'description' => 'Permite clienților să facă programări online pentru consultații oftalmologice',
-                'icon' => 'calendar-alt',
-                'price' => 0.00, // Included in Starter
+                'category_id' => $cat_content,
+                'slug' => 'team-members',
+                'title' => 'Echipa',
+                'description' => 'Gestionare membri echipă cu profiluri complete',
+                'logo' => null,
+                'price' => 0.00,
+                'availability_mode' => 'all_tenants',
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
             array(
-                'category_id' => $cat_essential,
-                'slug' => 'contact-forms',
-                'title' => 'Formulare Contact',
-                'description' => 'Formulare personalizabile pentru contact clienți',
-                'icon' => 'envelope',
+                'category_id' => $cat_content,
+                'slug' => 'faq-system',
+                'title' => 'FAQ',
+                'description' => 'Sistem de întrebări frecvente',
+                'logo' => null,
                 'price' => 0.00,
+                'availability_mode' => 'all_tenants',
+                'is_active' => 1,
+                'created_at' => current_time('mysql'),
+            ),
+            array(
+                'category_id' => $cat_content,
+                'slug' => 'testimonials',
+                'title' => 'Testimoniale',
+                'description' => 'Gestionare testimoniale clienți',
+                'logo' => null,
+                'price' => 0.00,
+                'availability_mode' => 'all_tenants',
+                'is_active' => 1,
+                'created_at' => current_time('mysql'),
+            ),
+            array(
+                'category_id' => $cat_content,
+                'slug' => 'blog-system',
+                'title' => 'Blog',
+                'description' => 'Sistem complet de blog cu categorii și taguri',
+                'logo' => null,
+                'price' => 29.00,
+                'availability_mode' => 'all_tenants',
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
 
-            // Marketing
+            // E-commerce
+            array(
+                'category_id' => $cat_ecommerce,
+                'slug' => 'woocommerce',
+                'title' => 'WooCommerce',
+                'description' => 'Magazin online complet',
+                'logo' => null,
+                'price' => 99.00,
+                'availability_mode' => 'all_tenants',
+                'is_active' => 1,
+                'created_at' => current_time('mysql'),
+            ),
+            array(
+                'category_id' => $cat_ecommerce,
+                'slug' => 'product-catalog',
+                'title' => 'Catalog Produse',
+                'description' => 'Catalog produse fără funcționalitate de cumpărare',
+                'logo' => null,
+                'price' => 49.00,
+                'availability_mode' => 'all_tenants',
+                'is_active' => 1,
+                'created_at' => current_time('mysql'),
+            ),
+
+            // Marketing & Promoții
             array(
                 'category_id' => $cat_marketing,
-                'slug' => 'reviews',
-                'title' => 'Recenzii Clienți',
-                'description' => 'Sistem de colectare și afișare recenzii clienți',
-                'icon' => 'star',
-                'price' => 15.00,
+                'slug' => 'promotions',
+                'title' => 'Promoții',
+                'description' => 'Sistem de promoții și oferte speciale',
+                'logo' => null,
+                'price' => 0.00,
+                'availability_mode' => 'all_tenants',
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
@@ -227,63 +305,58 @@ class WPT_Default_Data {
                 'category_id' => $cat_marketing,
                 'slug' => 'newsletter',
                 'title' => 'Newsletter',
-                'description' => 'Sistem de newsletter cu integrare MailChimp/SendGrid',
-                'icon' => 'mail-bulk',
-                'price' => 20.00,
+                'description' => 'Sistem de newsletter și email marketing',
+                'logo' => null,
+                'price' => 39.00,
+                'availability_mode' => 'all_tenants',
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
             array(
                 'category_id' => $cat_marketing,
-                'slug' => 'seo-tools',
-                'title' => 'SEO Tools',
-                'description' => 'Instrumente pentru optimizare SEO (meta tags, sitemap, schema.org)',
-                'icon' => 'search',
-                'price' => 25.00,
-                'is_active' => 1,
-                'created_at' => current_time('mysql'),
-            ),
-            array(
-                'category_id' => $cat_marketing,
-                'slug' => 'marketing-automation',
-                'title' => 'Marketing Automation',
-                'description' => 'Email automation, campanii automate, remarketing',
-                'icon' => 'robot',
-                'price' => 40.00,
+                'slug' => 'loyalty-program',
+                'title' => 'Program Loialitate',
+                'description' => 'Sistem de puncte și recompense',
+                'logo' => null,
+                'price' => 99.00,
+                'availability_mode' => 'all_tenants',
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
 
-            // Analytics
+            // Analytics & Raportare
             array(
                 'category_id' => $cat_analytics,
-                'slug' => 'analytics',
-                'title' => 'Analytics Avansat',
-                'description' => 'Google Analytics 4 + heatmaps + conversion tracking',
-                'icon' => 'chart-line',
-                'price' => 30.00,
+                'slug' => 'google-analytics',
+                'title' => 'Google Analytics',
+                'description' => 'Integrare Google Analytics 4',
+                'logo' => null,
+                'price' => 0.00,
+                'availability_mode' => 'all_tenants',
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
             array(
                 'category_id' => $cat_analytics,
-                'slug' => 'reports',
-                'title' => 'Rapoarte Personalizate',
-                'description' => 'Generare rapoarte PDF pentru vânzări, clienți, performanță',
-                'icon' => 'file-pdf',
-                'price' => 25.00,
+                'slug' => 'custom-reports',
+                'title' => 'Rapoarte Custom',
+                'description' => 'Rapoarte personalizate pentru business',
+                'logo' => null,
+                'price' => 59.00,
+                'availability_mode' => 'all_tenants',
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
 
-            // Integrations
+            // Integrări
             array(
                 'category_id' => $cat_integrations,
-                'slug' => 'whatsapp-chat',
-                'title' => 'WhatsApp Chat',
-                'description' => 'Widget WhatsApp pentru chat direct cu clienții',
-                'icon' => 'whatsapp',
-                'price' => 10.00,
+                'slug' => 'google-maps',
+                'title' => 'Google Maps',
+                'description' => 'Integrare Google Maps pentru locații',
+                'logo' => null,
+                'price' => 0.00,
+                'availability_mode' => 'all_tenants',
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
@@ -291,41 +364,104 @@ class WPT_Default_Data {
                 'category_id' => $cat_integrations,
                 'slug' => 'facebook-pixel',
                 'title' => 'Facebook Pixel',
-                'description' => 'Integrare Facebook Pixel pentru tracking și remarketing',
-                'icon' => 'facebook',
-                'price' => 10.00,
+                'description' => 'Integrare Facebook Pixel pentru tracking',
+                'logo' => null,
+                'price' => 0.00,
+                'availability_mode' => 'all_tenants',
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
             array(
                 'category_id' => $cat_integrations,
-                'slug' => 'smartbill-integration',
-                'title' => 'SmartBill Integration',
-                'description' => 'Integrare cu SmartBill pentru facturare automată',
-                'icon' => 'file-invoice',
-                'price' => 35.00,
+                'slug' => 'mailchimp',
+                'title' => 'Mailchimp',
+                'description' => 'Integrare cu Mailchimp pentru email marketing',
+                'logo' => null,
+                'price' => 29.00,
+                'availability_mode' => 'all_tenants',
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
 
-            // Advanced
+            // Automatizare
             array(
-                'category_id' => $cat_advanced,
-                'slug' => 'crm-advanced',
-                'title' => 'CRM Avansat',
-                'description' => 'CRM complet cu pipeline vânzări, task-uri, activity log',
-                'icon' => 'users-cog',
-                'price' => 50.00,
+                'category_id' => $cat_automation,
+                'slug' => 'auto-backup',
+                'title' => 'Backup Automat',
+                'description' => 'Backup automat zilnic al site-ului',
+                'logo' => null,
+                'price' => 39.00,
+                'availability_mode' => 'all_tenants',
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
             array(
-                'category_id' => $cat_advanced,
-                'slug' => 'custom-integrations',
-                'title' => 'Integrări Custom',
-                'description' => 'Dezvoltare integrări personalizate cu sisteme externe',
-                'icon' => 'plug',
-                'price' => 0.00, // Price on request
+                'category_id' => $cat_automation,
+                'slug' => 'scheduled-posts',
+                'title' => 'Postări Programate',
+                'description' => 'Sistem avansat de programare postări',
+                'logo' => null,
+                'price' => 19.00,
+                'availability_mode' => 'all_tenants',
+                'is_active' => 1,
+                'created_at' => current_time('mysql'),
+            ),
+
+            // Clienți & CRM
+            array(
+                'category_id' => $cat_crm,
+                'slug' => 'appointments',
+                'title' => 'Programări Online',
+                'description' => 'Sistem de programări online cu calendar',
+                'logo' => null,
+                'price' => 79.00,
+                'availability_mode' => 'all_tenants',
+                'is_active' => 1,
+                'created_at' => current_time('mysql'),
+            ),
+            array(
+                'category_id' => $cat_crm,
+                'slug' => 'crm-basic',
+                'title' => 'CRM Basic',
+                'description' => 'Sistem CRM pentru gestionare clienți',
+                'logo' => null,
+                'price' => 99.00,
+                'availability_mode' => 'all_tenants',
+                'is_active' => 1,
+                'created_at' => current_time('mysql'),
+            ),
+
+            // Comunicare
+            array(
+                'category_id' => $cat_communication,
+                'slug' => 'contact-forms',
+                'title' => 'Formulare Contact',
+                'description' => 'Formulare de contact personalizabile',
+                'logo' => null,
+                'price' => 0.00,
+                'availability_mode' => 'all_tenants',
+                'is_active' => 1,
+                'created_at' => current_time('mysql'),
+            ),
+            array(
+                'category_id' => $cat_communication,
+                'slug' => 'live-chat',
+                'title' => 'Live Chat',
+                'description' => 'Chat live pentru suport clienți',
+                'logo' => null,
+                'price' => 49.00,
+                'availability_mode' => 'all_tenants',
+                'is_active' => 1,
+                'created_at' => current_time('mysql'),
+            ),
+            array(
+                'category_id' => $cat_communication,
+                'slug' => 'sms-notifications',
+                'title' => 'Notificări SMS',
+                'description' => 'Sistem de notificări SMS pentru clienți',
+                'logo' => null,
+                'price' => 59.00,
+                'availability_mode' => 'all_tenants',
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
@@ -335,7 +471,7 @@ class WPT_Default_Data {
             $wpdb->insert(
                 $wpdb->prefix . 'wpt_available_modules',
                 $module,
-                array('%d', '%s', '%s', '%s', '%s', '%f', '%d', '%s')
+                array('%d', '%s', '%s', '%s', '%s', '%f', '%s', '%d', '%s')
             );
         }
     }

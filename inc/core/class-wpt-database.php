@@ -96,10 +96,12 @@ class WPT_Database {
             slug VARCHAR(50) NOT NULL UNIQUE,
             title VARCHAR(100) NOT NULL,
             description TEXT,
-            icon VARCHAR(20),
+            logo VARCHAR(255),
             price DECIMAL(10,2) DEFAULT 0.00,
+            availability_mode ENUM('all_tenants', 'specific_tenants') DEFAULT 'all_tenants',
             is_active BOOLEAN DEFAULT 1,
             created_at DATETIME NOT NULL,
+            updated_at DATETIME DEFAULT NULL,
             INDEX idx_slug (slug),
             INDEX idx_category (category_id)
         ) $charset_collate;";
@@ -111,8 +113,23 @@ class WPT_Database {
             slug VARCHAR(50) NOT NULL UNIQUE,
             name VARCHAR(100) NOT NULL,
             description TEXT,
+            icon VARCHAR(50),
             sort_order INT DEFAULT 0,
             INDEX idx_slug (slug)
+        ) $charset_collate;";
+        dbDelta($sql);
+
+        // Table: wpt_module_availability (for specific_tenants mode)
+        $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}wpt_module_availability (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            module_id BIGINT UNSIGNED NOT NULL,
+            tenant_id BIGINT UNSIGNED NOT NULL,
+            created_at DATETIME NOT NULL,
+            FOREIGN KEY (module_id) REFERENCES {$wpdb->prefix}wpt_available_modules(id) ON DELETE CASCADE,
+            FOREIGN KEY (tenant_id) REFERENCES {$wpdb->prefix}wpt_tenants(id) ON DELETE CASCADE,
+            UNIQUE KEY unique_module_tenant (module_id, tenant_id),
+            INDEX idx_module (module_id),
+            INDEX idx_tenant (tenant_id)
         ) $charset_collate;";
         dbDelta($sql);
 
@@ -122,6 +139,8 @@ class WPT_Database {
             tenant_id BIGINT UNSIGNED NOT NULL,
             module_id BIGINT UNSIGNED NOT NULL,
             status ENUM('active', 'inactive') DEFAULT 'active',
+            activated_by ENUM('admin', 'tenant') DEFAULT 'tenant',
+            deactivated_by ENUM('admin', 'tenant') DEFAULT NULL,
             activated_at DATETIME NOT NULL,
             deactivated_at DATETIME DEFAULT NULL,
             FOREIGN KEY (tenant_id) REFERENCES {$wpdb->prefix}wpt_tenants(id) ON DELETE CASCADE,
@@ -256,6 +275,7 @@ class WPT_Database {
 
         $tables = array(
             'wpt_tenant_modules',
+            'wpt_module_availability',
             'wpt_tenant_addons',
             'wpt_site_versions',
             'wpt_tenants',

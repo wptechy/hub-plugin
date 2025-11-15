@@ -1,6 +1,7 @@
 <?php
 /**
  * Modules Marketplace View
+ * Organized by categories with vertical tabs
  *
  * @package WPT_Optica_Core
  */
@@ -14,292 +15,310 @@ global $wpdb;
 $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'list';
 $module_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['wpt_module_nonce']) && wp_verify_nonce($_POST['wpt_module_nonce'], 'wpt_save_module')) {
-    $module_data = array(
-        'title' => sanitize_text_field($_POST['title']),
-        'slug' => sanitize_title($_POST['slug']),
-        'description' => wp_kses_post($_POST['description']),
-        'category_id' => intval($_POST['category_id']),
-        'price' => floatval($_POST['price']),
-        'is_active' => isset($_POST['is_active']) ? 1 : 0,
-        'icon' => sanitize_text_field($_POST['icon']),
-    );
+// Get all categories
+$categories = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}wpt_module_categories ORDER BY sort_order ASC");
 
-    if ($module_id > 0) {
-        $wpdb->update(
-            $wpdb->prefix . 'wpt_available_modules',
-            $module_data,
-            array('id' => $module_id),
-            array('%s', '%s', '%s', '%d', '%f', '%d', '%s'),
-            array('%d')
-        );
-        $message = __('Module updated successfully', 'wpt-optica-core');
-    } else {
-        $module_data['created_at'] = current_time('mysql');
-        $wpdb->insert(
-            $wpdb->prefix . 'wpt_available_modules',
-            $module_data,
-            array('%s', '%s', '%s', '%d', '%f', '%d', '%s', '%s')
-        );
-        $message = __('Module created successfully', 'wpt-optica-core');
+// Get active category (default to first)
+$active_category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : ($categories[0]->slug ?? '');
+
+// Find active category object
+$active_cat_obj = null;
+foreach ($categories as $cat) {
+    if ($cat->slug === $active_category) {
+        $active_cat_obj = $cat;
+        break;
     }
-
-    echo '<div class="notice notice-success"><p>' . esc_html($message) . '</p></div>';
 }
 
-// Get categories for dropdown
-$categories = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}wpt_module_categories ORDER BY name ASC");
-
-if ($action === 'edit' && $module_id > 0) {
-    $module = $wpdb->get_row($wpdb->prepare(
-        "SELECT * FROM {$wpdb->prefix}wpt_available_modules WHERE id = %d",
-        $module_id
-    ));
-
-    if (!$module) {
-        echo '<div class="notice notice-error"><p>' . __('Module not found', 'wpt-optica-core') . '</p></div>';
-        $action = 'list';
-    }
+if (!$active_cat_obj && !empty($categories)) {
+    $active_cat_obj = $categories[0];
+    $active_category = $active_cat_obj->slug;
 }
 ?>
 
 <div class="wrap wpt-modules">
-    <h1 class="wp-heading-inline"><?php _e('Modules Marketplace', 'wpt-optica-core'); ?></h1>
+    <h1 class="wp-heading-inline"><?php _e('Modules', 'wpt-optica-core'); ?></h1>
 
     <?php if ($action === 'list'): ?>
         <a href="<?php echo admin_url('admin.php?page=wpt-modules&action=new'); ?>" class="page-title-action">
-            <?php _e('Add New', 'wpt-optica-core'); ?>
+            <?php _e('Add New Module', 'wpt-optica-core'); ?>
         </a>
         <hr class="wp-header-end">
 
-        <?php
-        // Get all modules
-        $modules = $wpdb->get_results("
-            SELECT m.*, c.name as category_name
-            FROM {$wpdb->prefix}wpt_available_modules m
-            LEFT JOIN {$wpdb->prefix}wpt_module_categories c ON m.category_id = c.id
-            ORDER BY m.title ASC
-        ");
-        ?>
-
-        <div class="wpt-modules-grid">
-            <?php if (empty($modules)): ?>
-                <p><?php _e('No modules found', 'wpt-optica-core'); ?></p>
-            <?php else: ?>
-                <?php foreach ($modules as $module): ?>
-                    <?php $status_class = $module->is_active ? 'active' : 'inactive'; ?>
-                    <div class="wpt-module-card wpt-module-<?php echo esc_attr($status_class); ?>">
-                        <div class="wpt-module-icon">
-                            <span class="dashicons dashicons-<?php echo esc_attr($module->icon ?: 'admin-plugins'); ?>"></span>
+        <div class="wpt-modules-container">
+            <!-- Vertical Category Tabs -->
+            <div class="wpt-category-tabs">
+                <?php foreach ($categories as $category): ?>
+                    <?php
+                    // Count modules in this category
+                    $module_count = $wpdb->get_var($wpdb->prepare(
+                        "SELECT COUNT(*) FROM {$wpdb->prefix}wpt_available_modules WHERE category_id = %d",
+                        $category->id
+                    ));
+                    $is_active = ($category->slug === $active_category);
+                    ?>
+                    <a href="<?php echo admin_url('admin.php?page=wpt-modules&category=' . urlencode($category->slug)); ?>"
+                       class="wpt-category-tab <?php echo $is_active ? 'active' : ''; ?>">
+                        <span class="dashicons dashicons-<?php echo esc_attr($category->icon); ?>"></span>
+                        <div class="wpt-tab-content">
+                            <strong><?php echo esc_html($category->name); ?></strong>
+                            <span class="wpt-module-count"><?php echo $module_count; ?> module<?php echo $module_count != 1 ? '' : ''; ?></span>
                         </div>
-                        <div class="wpt-module-header">
-                            <h3><?php echo esc_html($module->title); ?></h3>
-                            <span class="wpt-module-category"><?php echo esc_html($module->category_name ?: 'Uncategorized'); ?></span>
-                        </div>
-                        <div class="wpt-module-description">
-                            <?php echo wp_kses_post(wp_trim_words($module->description, 20)); ?>
-                        </div>
-                        <div class="wpt-module-price">
-                            <?php if ($module->price > 0): ?>
-                                <strong><?php echo esc_html(number_format($module->price, 2)); ?> RON</strong>
-                            <?php else: ?>
-                                <strong><?php _e('Free', 'wpt-optica-core'); ?></strong>
-                            <?php endif; ?>
-                        </div>
-                        <div class="wpt-module-status">
-                            <span class="wpt-status-badge wpt-status-<?php echo esc_attr($status_class); ?>">
-                                <?php echo esc_html($module->is_active ? __('Active', 'wpt-optica-core') : __('Inactive', 'wpt-optica-core')); ?>
-                            </span>
-                        </div>
-                        <div class="wpt-module-actions">
-                            <a href="<?php echo admin_url('admin.php?page=wpt-modules&action=edit&id=' . $module->id); ?>" class="button button-primary">
-                                <?php _e('Edit', 'wpt-optica-core'); ?>
-                            </a>
-                            <a href="<?php echo admin_url('admin.php?page=wpt-modules&action=view&id=' . $module->id); ?>" class="button button-secondary">
-                                <?php _e('View Stats', 'wpt-optica-core'); ?>
-                            </a>
-                        </div>
-                    </div>
+                    </a>
                 <?php endforeach; ?>
-            <?php endif; ?>
+            </div>
+
+            <!-- Modules List for Active Category -->
+            <div class="wpt-modules-list">
+                <?php if ($active_cat_obj): ?>
+                    <div class="wpt-category-header">
+                        <h2>
+                            <span class="dashicons dashicons-<?php echo esc_attr($active_cat_obj->icon); ?>"></span>
+                            <?php echo esc_html($active_cat_obj->name); ?>
+                        </h2>
+                        <p class="description"><?php echo esc_html($active_cat_obj->description); ?></p>
+                    </div>
+
+                    <?php
+                    // Get modules for this category with stats
+                    $modules = $wpdb->get_results($wpdb->prepare("
+                        SELECT
+                            m.*,
+                            COUNT(DISTINCT tm.tenant_id) as active_tenants,
+                            COUNT(DISTINCT CASE WHEN tm.status = 'active' THEN tm.tenant_id END) as active_count
+                        FROM {$wpdb->prefix}wpt_available_modules m
+                        LEFT JOIN {$wpdb->prefix}wpt_tenant_modules tm ON m.id = tm.module_id
+                        WHERE m.category_id = %d
+                        GROUP BY m.id
+                        ORDER BY m.title ASC
+                    ", $active_cat_obj->id));
+                    ?>
+
+                    <?php if (empty($modules)): ?>
+                        <div class="wpt-no-modules">
+                            <span class="dashicons dashicons-info"></span>
+                            <p><?php _e('Nu există module în această categorie', 'wpt-optica-core'); ?></p>
+                        </div>
+                    <?php else: ?>
+                        <table class="wp-list-table widefat fixed striped">
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px;"><?php _e('Logo', 'wpt-optica-core'); ?></th>
+                                    <th><?php _e('Titlu', 'wpt-optica-core'); ?></th>
+                                    <th><?php _e('Preț', 'wpt-optica-core'); ?></th>
+                                    <th><?php _e('Disponibilitate', 'wpt-optica-core'); ?></th>
+                                    <th><?php _e('Tenants Activi', 'wpt-optica-core'); ?></th>
+                                    <th><?php _e('Status', 'wpt-optica-core'); ?></th>
+                                    <th><?php _e('Acțiuni', 'wpt-optica-core'); ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($modules as $module): ?>
+                                    <tr>
+                                        <td class="wpt-module-logo">
+                                            <?php if (!empty($module->logo)): ?>
+                                                <img src="<?php echo esc_url($module->logo); ?>" alt="<?php echo esc_attr($module->title); ?>" style="max-width: 40px; max-height: 40px;">
+                                            <?php else: ?>
+                                                <span class="dashicons dashicons-admin-generic" style="font-size: 40px; color: #ccc;"></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <strong><?php echo esc_html($module->title); ?></strong>
+                                            <br>
+                                            <span class="description"><?php echo esc_html(wp_trim_words($module->description, 15)); ?></span>
+                                        </td>
+                                        <td>
+                                            <?php if ($module->price > 0): ?>
+                                                <strong><?php echo number_format($module->price, 0); ?> RON/lună</strong>
+                                            <?php else: ?>
+                                                <span class="wpt-badge wpt-badge-success"><?php _e('Gratis', 'wpt-optica-core'); ?></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($module->availability_mode === 'all_tenants'): ?>
+                                                <span class="wpt-badge wpt-badge-info"><?php _e('Toți tenants', 'wpt-optica-core'); ?></span>
+                                            <?php else: ?>
+                                                <span class="wpt-badge wpt-badge-warning"><?php _e('Specific tenants', 'wpt-optica-core'); ?></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <strong><?php echo intval($module->active_count); ?></strong> activi
+                                        </td>
+                                        <td>
+                                            <?php if ($module->is_active): ?>
+                                                <span class="wpt-status-badge wpt-status-active"><?php _e('Activ', 'wpt-optica-core'); ?></span>
+                                            <?php else: ?>
+                                                <span class="wpt-status-badge wpt-status-inactive"><?php _e('Inactiv', 'wpt-optica-core'); ?></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <a href="<?php echo admin_url('admin.php?page=wpt-modules&action=edit&id=' . $module->id); ?>" class="button button-small">
+                                                <?php _e('Edit', 'wpt-optica-core'); ?>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
         </div>
 
     <?php elseif ($action === 'new' || $action === 'edit'): ?>
         <hr class="wp-header-end">
 
-        <form method="post" action="<?php echo admin_url('admin.php?page=wpt-modules' . ($action === 'edit' ? '&action=edit&id=' . $module_id : '&action=new')); ?>">
-            <?php wp_nonce_field('wpt_save_module', 'wpt_module_nonce'); ?>
+        <p><a href="<?php echo admin_url('admin.php?page=wpt-modules'); ?>">&larr; <?php _e('Back to Modules', 'wpt-optica-core'); ?></a></p>
 
-            <table class="form-table">
-                <tr>
-                    <th scope="row">
-                        <label for="title"><?php _e('Module Name', 'wpt-optica-core'); ?> <span class="required">*</span></label>
-                    </th>
-                    <td>
-                        <input type="text" id="title" name="title" class="regular-text"
-                               value="<?php echo isset($module) ? esc_attr($module->title) : ''; ?>" required>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="slug"><?php _e('Slug', 'wpt-optica-core'); ?> <span class="required">*</span></label>
-                    </th>
-                    <td>
-                        <input type="text" id="slug" name="slug" class="regular-text" 
-                               value="<?php echo isset($module) ? esc_attr($module->slug) : ''; ?>" required>
-                        <p class="description"><?php _e('Unique identifier (e.g., appointments-pro)', 'wpt-optica-core'); ?></p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="description"><?php _e('Description', 'wpt-optica-core'); ?></label>
-                    </th>
-                    <td>
-                        <textarea id="description" name="description" rows="5" class="large-text"><?php echo isset($module) ? esc_textarea($module->description) : ''; ?></textarea>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="category_id"><?php _e('Category', 'wpt-optica-core'); ?> <span class="required">*</span></label>
-                    </th>
-                    <td>
-                        <select id="category_id" name="category_id" required>
-                            <option value=""><?php _e('Select a category', 'wpt-optica-core'); ?></option>
-                            <?php foreach ($categories as $category): ?>
-                                <option value="<?php echo esc_attr($category->id); ?>" 
-                                    <?php echo (isset($module) && $module->category_id == $category->id) ? 'selected' : ''; ?>>
-                                    <?php echo esc_html($category->name); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="price"><?php _e('Price', 'wpt-optica-core'); ?></label>
-                    </th>
-                    <td>
-                        <input type="number" id="price" name="price" class="small-text" step="0.01" min="0"
-                               value="<?php echo isset($module) ? esc_attr($module->price) : '0'; ?>"> RON
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="icon"><?php _e('Dashicon', 'wpt-optica-core'); ?></label>
-                    </th>
-                    <td>
-                        <input type="text" id="icon" name="icon" class="regular-text" 
-                               value="<?php echo isset($module) ? esc_attr($module->icon) : 'admin-plugins'; ?>">
-                        <p class="description">
-                            <?php _e('Dashicon name without "dashicons-" prefix (e.g., "calendar-alt")', 'wpt-optica-core'); ?>
-                            <a href="https://developer.wordpress.org/resource/dashicons/" target="_blank"><?php _e('View all icons', 'wpt-optica-core'); ?></a>
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="is_active"><?php _e('Active', 'wpt-optica-core'); ?></label>
-                    </th>
-                    <td>
-                        <input type="checkbox" id="is_active" name="is_active" value="1"
-                               <?php echo (isset($module) && $module->is_active) ? 'checked' : ''; ?>>
-                        <label for="is_active"><?php _e('Enable this module', 'wpt-optica-core'); ?></label>
-                    </td>
-                </tr>
-            </table>
-
-            <p class="submit">
-                <input type="submit" name="submit" class="button button-primary" 
-                       value="<?php echo $action === 'edit' ? __('Update Module', 'wpt-optica-core') : __('Create Module', 'wpt-optica-core'); ?>">
-                <a href="<?php echo admin_url('admin.php?page=wpt-modules'); ?>" class="button button-secondary">
-                    <?php _e('Cancel', 'wpt-optica-core'); ?>
-                </a>
-            </p>
-        </form>
-
-    <?php elseif ($action === 'view' && $module_id > 0): ?>
         <?php
-        $module = $wpdb->get_row($wpdb->prepare(
-            "SELECT m.*, c.name as category_name
-            FROM {$wpdb->prefix}wpt_available_modules m
-            LEFT JOIN {$wpdb->prefix}wpt_module_categories c ON m.category_id = c.id
-            WHERE m.id = %d",
-            $module_id
-        ));
-
-        // Get usage stats
-        $total_activations = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}wpt_tenant_modules WHERE module_id = %d",
-            $module_id
-        ));
-
-        $active_tenants = $wpdb->get_results($wpdb->prepare(
-            "SELECT t.*, tm.activated_at 
-            FROM {$wpdb->prefix}wpt_tenants t
-            INNER JOIN {$wpdb->prefix}wpt_tenant_modules tm ON t.id = tm.tenant_id
-            WHERE tm.module_id = %d AND tm.status = 'active'
-            ORDER BY tm.activated_at DESC",
-            $module_id
-        ));
+        // Redirect to new detail page structure
+        if ($action === 'edit' && $module_id > 0) {
+            // Include the detail page with tabs
+            include WPT_HUB_DIR . 'inc/hub/admin/views/module-edit.php';
+        } else {
+            // Include the new module form
+            include WPT_HUB_DIR . 'inc/hub/admin/views/module-edit.php';
+        }
         ?>
-
-        <hr class="wp-header-end">
-
-        <div class="wpt-module-details">
-            <div class="wpt-module-header-large">
-                <span class="dashicons dashicons-<?php echo esc_attr($module->icon ?: 'admin-plugins'); ?>"></span>
-                <div>
-                    <h2><?php echo esc_html($module->title); ?></h2>
-                    <p><?php echo esc_html($module->category_name); ?></p>
-                </div>
-            </div>
-
-            <div class="wpt-stats-row">
-                <div class="wpt-stat-box">
-                    <div class="wpt-stat-number"><?php echo esc_html($total_activations); ?></div>
-                    <div class="wpt-stat-label"><?php _e('Total Activations', 'wpt-optica-core'); ?></div>
-                </div>
-                <div class="wpt-stat-box">
-                    <div class="wpt-stat-number"><?php echo esc_html(count($active_tenants)); ?></div>
-                    <div class="wpt-stat-label"><?php _e('Active Users', 'wpt-optica-core'); ?></div>
-                </div>
-                <div class="wpt-stat-box">
-                    <div class="wpt-stat-number"><?php echo number_format($module->price, 2); ?> RON</div>
-                    <div class="wpt-stat-label"><?php _e('Price', 'wpt-optica-core'); ?></div>
-                </div>
-            </div>
-
-            <h3><?php _e('Active Tenants', 'wpt-optica-core'); ?></h3>
-            <table class="wp-list-table widefat fixed striped">
-                <thead>
-                    <tr>
-                        <th><?php _e('Tenant', 'wpt-optica-core'); ?></th>
-                        <th><?php _e('Domain', 'wpt-optica-core'); ?></th>
-                        <th><?php _e('Activated', 'wpt-optica-core'); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($active_tenants)): ?>
-                        <tr>
-                            <td colspan="3"><?php _e('No active tenants', 'wpt-optica-core'); ?></td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($active_tenants as $tenant): ?>
-                            <tr>
-                                <td>
-                                    <a href="<?php echo admin_url('admin.php?page=wpt-tenants&action=edit&id=' . $tenant->id); ?>">
-                                        <?php echo esc_html($tenant->name); ?>
-                                    </a>
-                                </td>
-                                <td><?php echo esc_html($tenant->domain); ?></td>
-                                <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($tenant->activated_at))); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
 
     <?php endif; ?>
 </div>
+
+<style>
+.wpt-modules-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.wpt-category-tabs {
+    flex: 0 0 250px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+}
+
+.wpt-category-tab {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: #2271b1;
+    border-bottom: 1px solid #f0f0f1;
+    transition: background 0.2s;
+}
+
+.wpt-category-tab:hover {
+    background: #f6f7f7;
+}
+
+.wpt-category-tab.active {
+    background: #2271b1;
+    color: #fff;
+}
+
+.wpt-category-tab .dashicons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+}
+
+.wpt-tab-content {
+    flex: 1;
+}
+
+.wpt-tab-content strong {
+    display: block;
+    font-size: 14px;
+}
+
+.wpt-module-count {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.wpt-modules-list {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+}
+
+.wpt-category-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f1;
+}
+
+.wpt-category-header h2 {
+    display: flex;
+    align-items: center;
+    margin: 0 0 8px 0;
+}
+
+.wpt-category-header .dashicons {
+    margin-right: 10px;
+    color: #2271b1;
+}
+
+.wpt-no-modules {
+    text-align: center;
+    padding: 60px 20px;
+    color: #646970;
+}
+
+.wpt-no-modules .dashicons {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    opacity: 0.3;
+}
+
+.wpt-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    border-radius: 3px;
+}
+
+.wpt-badge-success {
+    background: #00a32a;
+    color: #fff;
+}
+
+.wpt-badge-info {
+    background: #2271b1;
+    color: #fff;
+}
+
+.wpt-badge-warning {
+    background: #dba617;
+    color: #fff;
+}
+
+.wpt-status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 3px;
+    font-weight: 500;
+}
+
+.wpt-status-active {
+    background: #d5f4e6;
+    color: #00633b;
+}
+
+.wpt-status-inactive {
+    background: #f0f0f1;
+    color: #646970;
+}
+
+.wpt-module-logo {
+    text-align: center;
+}
+</style>

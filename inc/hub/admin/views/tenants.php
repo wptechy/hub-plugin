@@ -505,12 +505,39 @@ if ($action === 'edit' && $tenant_id > 0) {
 
         <script>
         jQuery(document).ready(function($) {
+            // Get active tab from URL parameter
+            function getActiveTab() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('tab') || 'general';
+            }
+
+            // Set active tab from URL on page load
+            function initializeTab() {
+                const activeTab = getActiveTab();
+
+                // Update tabs
+                $('.wpt-tenant-tabs .nav-tab').removeClass('nav-tab-active');
+                $('.wpt-tenant-tabs .nav-tab[data-tab="' + activeTab + '"]').addClass('nav-tab-active');
+
+                // Update panels
+                $('.wpt-tenant-tab-panel').removeClass('active');
+                $('#tab-' + activeTab).addClass('active');
+            }
+
+            // Initialize tab on page load
+            initializeTab();
+
             // Tab switching for tenant management
             $('.wpt-tenant-tabs .nav-tab').on('click', function(e) {
                 e.preventDefault();
 
                 const $tab = $(this);
                 const tabId = $tab.data('tab');
+
+                // Update URL without reloading page
+                const url = new URL(window.location);
+                url.searchParams.set('tab', tabId);
+                window.history.pushState({}, '', url);
 
                 // Update tabs
                 $('.wpt-tenant-tabs .nav-tab').removeClass('nav-tab-active');

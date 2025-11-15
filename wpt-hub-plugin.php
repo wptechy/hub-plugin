@@ -114,6 +114,11 @@ final class WPT_Hub_Plugin {
         if (is_admin()) {
             require_once WPT_HUB_DIR . 'inc/hub/admin/class-wpt-sync-config-admin.php';
         }
+
+        // Module Categories Admin
+        if (is_admin()) {
+            require_once WPT_HUB_DIR . 'inc/hub/admin/class-wpt-module-categories-admin.php';
+        }
     }
 
     /**
