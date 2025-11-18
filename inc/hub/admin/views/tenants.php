@@ -166,6 +166,7 @@ if ($action === 'edit' && $tenant_id > 0) {
                     <th><?php _e('User', 'wpt-optica-core'); ?></th>
                     <th><?php _e('Site URL', 'wpt-optica-core'); ?></th>
                     <th><?php _e('Plan', 'wpt-optica-core'); ?></th>
+                    <th><?php _e('AI Tokens', 'wpt-optica-core'); ?></th>
                     <th><?php _e('Status', 'wpt-optica-core'); ?></th>
                     <th><?php _e('Created', 'wpt-optica-core'); ?></th>
                     <th><?php _e('Actions', 'wpt-optica-core'); ?></th>
@@ -174,7 +175,7 @@ if ($action === 'edit' && $tenant_id > 0) {
             <tbody>
                 <?php if (empty($tenants)): ?>
                     <tr>
-                        <td colspan="8"><?php _e('No tenants found', 'wpt-optica-core'); ?></td>
+                        <td colspan="9"><?php _e('No tenants found', 'wpt-optica-core'); ?></td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($tenants as $tenant): ?>
@@ -201,6 +202,16 @@ if ($action === 'edit' && $tenant_id > 0) {
                                 <?php endif; ?>
                             </td>
                             <td><?php echo esc_html($tenant->plan_name ?: __('None', 'wpt-optica-core')); ?></td>
+                            <td>
+                                <strong><?php echo number_format_i18n($tenant->ai_tokens_used); ?></strong>
+                                <br>
+                                <small style="color: #666;">
+                                    <?php
+                                    $cost = ($tenant->ai_tokens_used / 1000000) * 3.00; // Estimate: $3/1M tokens
+                                    printf('~$%.4f', $cost);
+                                    ?>
+                                </small>
+                            </td>
                             <td>
                                 <span class="wpt-status-badge wpt-status-<?php echo esc_attr($tenant->status); ?>">
                                     <?php echo esc_html(ucfirst(str_replace('_', ' ', $tenant->status))); ?>

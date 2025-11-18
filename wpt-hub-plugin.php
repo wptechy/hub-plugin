@@ -78,6 +78,7 @@ final class WPT_Hub_Plugin {
         require_once WPT_HUB_DIR . 'inc/core/class-wpt-helpers.php';
         require_once WPT_HUB_DIR . 'inc/core/class-wpt-roles.php';
         require_once WPT_HUB_DIR . 'inc/core/class-wpt-default-data.php';
+        require_once WPT_HUB_DIR . 'inc/core/class-wpt-hub-translations.php';
 
         // Load HUB-specific components
         $this->load_hub_components();
@@ -92,6 +93,9 @@ final class WPT_Hub_Plugin {
 
         // Quota API
         require_once WPT_HUB_DIR . 'inc/hub/api/class-wpt-quota-api.php';
+
+        // AI Tokens API
+        require_once WPT_HUB_DIR . 'inc/hub/class-wpt-ai-tokens-api.php';
 
         // Admin Menus
         if (is_admin()) {
