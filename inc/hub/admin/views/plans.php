@@ -110,15 +110,15 @@ if ($action === 'delete' && $item_id > 0 && isset($_GET['_wpnonce']) && wp_verif
     <h2 class="nav-tab-wrapper">
         <a href="<?php echo admin_url('admin.php?page=wpt-plans&tab=plans'); ?>"
            class="nav-tab <?php echo $active_tab === 'plans' ? 'nav-tab-active' : ''; ?>">
-            <?php _e('Plans', 'wpt-optica-core'); ?>
+            <?php _e('Planuri', 'wpt-optica-core'); ?>
         </a>
         <a href="<?php echo admin_url('admin.php?page=wpt-plans&tab=addons'); ?>"
            class="nav-tab <?php echo $active_tab === 'addons' ? 'nav-tab-active' : ''; ?>">
-            <?php _e('Add-ons', 'wpt-optica-core'); ?>
+            <?php _e('Add-on-uri', 'wpt-optica-core'); ?>
         </a>
         <a href="<?php echo admin_url('admin.php?page=wpt-plans&tab=mappings'); ?>"
            class="nav-tab <?php echo $active_tab === 'mappings' ? 'nav-tab-active' : ''; ?>">
-            📋 <?php _e('Feature Mappings', 'wpt-optica-core'); ?>
+            📋 <?php _e('Mapări funcționalități', 'wpt-optica-core'); ?>
         </a>
     </h2>
 

@@ -21,6 +21,46 @@ if (!$tenant) {
     return;
 }
 
+// Handle plan change submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_plan'])) {
+    check_admin_referer('wpt_change_tenant_plan', 'wpt_plan_nonce');
+
+    $new_plan_id = isset($_POST['plan_id']) ? intval($_POST['plan_id']) : 0;
+    $submit_tenant_id = isset($_POST['tenant_id']) ? intval($_POST['tenant_id']) : 0;
+
+    // Validate
+    if ($submit_tenant_id !== $tenant_id) {
+        echo '<div class="notice notice-error is-dismissible"><p>' . __('Eroare: Tenant ID invalid.', 'wpt-optica-core') . '</p></div>';
+    } elseif (!$new_plan_id) {
+        echo '<div class="notice notice-error is-dismissible"><p>' . __('Eroare: Selectează un plan.', 'wpt-optica-core') . '</p></div>';
+    } else {
+        // Verify plan exists
+        $new_plan = WPT_Plan_Manager::get_plan($new_plan_id);
+
+        if (!$new_plan) {
+            echo '<div class="notice notice-error is-dismissible"><p>' . __('Eroare: Planul selectat nu există.', 'wpt-optica-core') . '</p></div>';
+        } else {
+            // Update tenant plan
+            $result = $wpdb->update(
+                $wpdb->prefix . 'wpt_tenants',
+                array('plan_id' => $new_plan_id),
+                array('id' => $tenant_id),
+                array('%d'),
+                array('%d')
+            );
+
+            if ($result !== false) {
+                echo '<div class="notice notice-success is-dismissible"><p>' . sprintf(__('Plan schimbat cu succes la %s!', 'wpt-optica-core'), '<strong>' . esc_html($new_plan->name) . '</strong>') . '</p></div>';
+
+                // Reload tenant data to show updated plan
+                $tenant = WPT_Tenant_Manager::get_tenant($tenant_id);
+            } else {
+                echo '<div class="notice notice-error is-dismissible"><p>' . __('Eroare la actualizarea planului.', 'wpt-optica-core') . '</p></div>';
+            }
+        }
+    }
+}
+
 // Get tenant's current plan
 $plan = null;
 if ($tenant->plan_id) {
@@ -55,97 +95,78 @@ $quota_features = WPT_Feature_Mapping_Manager::get_quota_features();
 
 <div class="wpt-tenant-plan-addons">
 
-    <!-- Current Plan Section -->
+    <!-- Plan Selection Section -->
     <div class="wpt-section">
-        <h3>📋 Plan Curent</h3>
+        <h3>📋 Selectează Plan</h3>
+        <p style="color: #666; margin-bottom: 20px;">Alege planul pentru acest tenant. Planul curent este evidențiat.</p>
 
-        <?php if ($plan): ?>
-            <div class="wpt-plan-card">
-                <div class="wpt-plan-header">
-                    <div class="wpt-plan-name">
-                        <strong><?php echo esc_html($plan->plan_name); ?></strong>
-                        <span class="wpt-plan-tier wpt-tier-<?php echo esc_attr(strtolower($plan->tier)); ?>">
-                            <?php echo esc_html($plan->tier); ?>
-                        </span>
-                    </div>
-                    <div class="wpt-plan-price">
-                        <strong><?php echo number_format($plan->price, 2); ?> RON</strong>/lună
-                    </div>
-                </div>
+        <form method="post" id="wpt-change-plan-form">
+            <?php wp_nonce_field('wpt_change_tenant_plan', 'wpt_plan_nonce'); ?>
+            <input type="hidden" name="tenant_id" value="<?php echo intval($tenant_id); ?>">
 
-                <?php if ($plan->description): ?>
-                    <div class="wpt-plan-description">
-                        <?php echo esc_html($plan->description); ?>
-                    </div>
-                <?php endif; ?>
+            <div class="wpt-plans-grid">
+                <?php
+                // Get all available plans
+                $all_plans = WPT_Plan_Manager::get_plans();
 
-                <!-- Plan Features -->
-                <div class="wpt-plan-features">
-                    <h4>✨ Features Incluse</h4>
-                    <?php
-                    $features = json_decode($plan->features, true);
-                    if ($features && is_array($features)):
-                        ?>
-                        <ul class="wpt-feature-list">
-                            <?php foreach ($features as $feature_key => $value): ?>
-                                <?php
-                                $mapping = WPT_Feature_Mapping_Manager::get_mapping($feature_key);
-                                if (!$mapping) continue;
+                foreach ($all_plans as $available_plan):
+                    $is_current = $plan && $plan->id === $available_plan->id;
+                    $features = json_decode($available_plan->features, true);
+                ?>
+                    <div class="wpt-plan-option <?php echo $is_current ? 'wpt-plan-current' : ''; ?>"
+                         data-plan-id="<?php echo intval($available_plan->id); ?>">
 
-                                $formatted_value = WPT_Feature_Mapping_Manager::format_feature_value($feature_key, $value);
-                                $icon = WPT_Feature_Mapping_Manager::get_feature_icon($mapping->feature_type);
-                                ?>
-                                <li>
-                                    <span class="dashicons <?php echo esc_attr($icon); ?>"></span>
-                                    <strong><?php echo esc_html($mapping->feature_name); ?>:</strong>
-                                    <span class="wpt-feature-value"><?php echo esc_html($formatted_value); ?></span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    <?php else: ?>
-                        <p style="color: #999;">Niciun feature definit pentru acest plan.</p>
-                    <?php endif; ?>
-                </div>
+                        <input type="radio"
+                               name="plan_id"
+                               id="plan_<?php echo intval($available_plan->id); ?>"
+                               value="<?php echo intval($available_plan->id); ?>"
+                               <?php checked($is_current); ?>
+                               class="wpt-plan-radio">
 
-                <!-- Quota Usage Tracking -->
-                <?php if ($quota_features): ?>
-                    <div class="wpt-quota-usage">
-                        <h4>📊 Utilizare Quota</h4>
-                        <?php foreach ($quota_features as $quota_feature): ?>
-                            <?php
-                            $feature_value = isset($features[$quota_feature->feature_key]) ? intval($features[$quota_feature->feature_key]) : 0;
+                        <label for="plan_<?php echo intval($available_plan->id); ?>" class="wpt-plan-label">
 
-                            // Get current usage (placeholder - will be implemented with actual tracking)
-                            $current_usage = 0; // TODO: Implement actual quota tracking
+                            <?php if ($is_current): ?>
+                                <div class="wpt-current-badge">✓ Plan Curent</div>
+                            <?php endif; ?>
 
-                            // Skip unlimited quotas
-                            if ($feature_value >= 999) {
-                                continue;
-                            }
-
-                            $percentage = $feature_value > 0 ? min(100, ($current_usage / $feature_value) * 100) : 0;
-                            $status_class = $percentage >= 90 ? 'danger' : ($percentage >= 70 ? 'warning' : 'success');
-                            ?>
-                            <div class="wpt-quota-item">
-                                <div class="wpt-quota-header">
-                                    <span><?php echo esc_html($quota_feature->feature_name); ?></span>
-                                    <span class="wpt-quota-stats"><?php echo intval($current_usage); ?> / <?php echo intval($feature_value); ?></span>
-                                </div>
-                                <div class="wpt-quota-bar">
-                                    <div class="wpt-quota-progress wpt-quota-<?php echo esc_attr($status_class); ?>"
-                                         style="width: <?php echo floatval($percentage); ?>%;"></div>
+                            <div class="wpt-plan-header-mini">
+                                <h4><?php echo esc_html($available_plan->name); ?></h4>
+                                <div class="wpt-plan-price-large">
+                                    <span class="wpt-price-amount"><?php echo number_format($available_plan->price, 0); ?></span>
+                                    <span class="wpt-price-currency">RON/lună</span>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
 
+                            <ul class="wpt-plan-features-mini">
+                                <?php if ($features && is_array($features)): ?>
+                                    <?php
+                                    $feature_count = 0;
+                                    foreach ($features as $feature_key => $value):
+                                        if ($feature_count >= 5) break; // Limit la primele 5 features
+                                        $mapping = WPT_Feature_Mapping_Manager::get_mapping($feature_key);
+                                        if (!$mapping) continue;
+                                        $formatted_value = WPT_Feature_Mapping_Manager::format_feature_value($feature_key, $value);
+                                        $feature_count++;
+                                    ?>
+                                        <li>
+                                            ✓ <?php echo esc_html($mapping->feature_name); ?>:
+                                            <strong><?php echo esc_html($formatted_value); ?></strong>
+                                        </li>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </ul>
+
+                        </label>
+                    </div>
+                <?php endforeach; ?>
             </div>
-        <?php else: ?>
-            <div class="notice notice-warning">
-                <p>⚠️ Tenantul nu are un plan alocat. Selectează un plan din tab-ul "Detalii Generale".</p>
-            </div>
-        <?php endif; ?>
+
+            <p class="submit" style="margin-top: 20px;">
+                <button type="submit" name="change_plan" class="button button-primary button-large">
+                    💾 Salvează Planul Selectat
+                </button>
+            </p>
+        </form>
     </div>
 
     <!-- Active Add-ons Section -->
@@ -180,7 +201,7 @@ $quota_features = WPT_Feature_Mapping_Manager::get_quota_features();
                                        style="width: 80px;">
                             </td>
                             <td>
-                                <?php echo number_format($addon->price, 2); ?> RON/<?php echo esc_html($addon->unit); ?>
+                                <?php echo number_format($addon->price, 2); ?> RON/lună
                             </td>
                             <td>
                                 <strong><?php echo number_format($total, 2); ?> RON</strong>/lună
@@ -231,10 +252,9 @@ $quota_features = WPT_Feature_Mapping_Manager::get_quota_features();
                                 if (in_array($addon->addon_slug, $active_slugs)) continue;
                             ?>
                                 <option value="<?php echo esc_attr($addon->addon_slug); ?>"
-                                        data-price="<?php echo esc_attr($addon->price); ?>"
-                                        data-unit="<?php echo esc_attr($addon->unit); ?>">
+                                        data-price="<?php echo esc_attr($addon->monthly_price); ?>">
                                     <?php echo esc_html($addon->addon_name); ?>
-                                    (<?php echo number_format($addon->price, 2); ?> RON/<?php echo esc_html($addon->unit); ?>)
+                                    (<?php echo number_format($addon->monthly_price, 2); ?> RON/lună)
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -504,6 +524,141 @@ $quota_features = WPT_Feature_Mapping_Manager::get_quota_features();
 
 .wpt-cost-total td {
     padding-top: 15px;
+}
+
+/* Plan Selection Grid */
+.wpt-plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.wpt-plan-option {
+    position: relative;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.wpt-plan-option:hover {
+    border-color: #0073aa;
+    box-shadow: 0 4px 12px rgba(0, 115, 170, 0.15);
+    transform: translateY(-2px);
+}
+
+.wpt-plan-option.wpt-plan-current {
+    border-color: #46b450;
+    border-width: 3px;
+    background: #f0f8f0;
+}
+
+.wpt-plan-radio {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.wpt-plan-label {
+    display: block;
+    padding: 20px 20px 20px 50px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.wpt-plan-radio:checked + .wpt-plan-label {
+    /* Additional styling when radio is checked */
+}
+
+.wpt-current-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #46b450;
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    z-index: 10;
+}
+
+.wpt-plan-header-mini {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.wpt-plan-header-mini h4 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.wpt-plan-price-large {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+
+.wpt-price-amount {
+    font-size: 32px;
+    font-weight: 700;
+    color: #0073aa;
+    line-height: 1;
+}
+
+.wpt-price-currency {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+.wpt-plan-features-mini {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.wpt-plan-features-mini li {
+    padding: 6px 0;
+    font-size: 13px;
+    color: #555;
+    line-height: 1.4;
+}
+
+.wpt-plan-features-mini li strong {
+    color: #0073aa;
+}
+
+/* Radio button visual indicator */
+.wpt-plan-option::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+
+.wpt-plan-option.wpt-plan-current::before,
+.wpt-plan-radio:checked + .wpt-plan-label::before,
+.wpt-plan-option:has(.wpt-plan-radio:checked)::before {
+    border-color: #46b450;
+    background: #46b450;
+    box-shadow: inset 0 0 0 4px #fff;
+}
+
+.wpt-plan-option:hover::before {
+    border-color: #0073aa;
 }
 </style>
 

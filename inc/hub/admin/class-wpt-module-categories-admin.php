@@ -41,8 +41,8 @@ class WPT_Module_Categories_Admin {
     public function add_admin_menu() {
         add_submenu_page(
             'wpt-platform',
-            __('Module Categories', 'wpt-optica-core'),
-            __('Module Categories', 'wpt-optica-core'),
+            __('Categorii de module', 'wpt-optica-core'),
+            __('Categorii de module', 'wpt-optica-core'),
             'manage_options',
             'wpt-module-categories',
             array($this, 'render_page')
@@ -52,8 +52,24 @@ class WPT_Module_Categories_Admin {
     /**
      * Render admin page
      */
-    public function render_page() {
+    public function render_page( $args = array() ) {
         global $wpdb;
+
+        $defaults = array(
+            'embed' => false,
+            'base'  => array(
+                'page'  => 'wpt-module-categories',
+                'query' => array(),
+            ),
+        );
+        $args = wp_parse_args( $args, $defaults );
+
+        if ( $args['embed'] ) {
+            $GLOBALS['wpt_module_categories_embed'] = true;
+            $GLOBALS['wpt_module_categories_base']  = $args['base'];
+        } else {
+            unset( $GLOBALS['wpt_module_categories_embed'], $GLOBALS['wpt_module_categories_base'] );
+        }
 
         $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'list';
         $category_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -78,7 +94,7 @@ class WPT_Module_Categories_Admin {
                     array('%s', '%s', '%s', '%s', '%d'),
                     array('%d')
                 );
-                echo '<div class="notice notice-success"><p>' . __('Category updated successfully', 'wpt-optica-core') . '</p></div>';
+                echo '<div class="notice notice-success"><p>' . __('Categoria a fost actualizată cu succes', 'wpt-optica-core') . '</p></div>';
             } else {
                 // Create new category
                 $wpdb->insert(
@@ -87,10 +103,13 @@ class WPT_Module_Categories_Admin {
                     array('%s', '%s', '%s', '%s', '%d')
                 );
                 $category_id = $wpdb->insert_id;
-                echo '<div class="notice notice-success"><p>' . __('Category created successfully', 'wpt-optica-core') . '</p></div>';
+                echo '<div class="notice notice-success"><p>' . __('Categoria a fost creată cu succes', 'wpt-optica-core') . '</p></div>';
 
                 // Redirect to edit page
-                echo '<script>window.location.href = "' . admin_url('admin.php?page=wpt-module-categories&action=edit&id=' . $category_id) . '";</script>';
+                $target_page = ( isset( $_GET['page'] ) && $_GET['page'] === 'wpt-modules' )
+                    ? admin_url( 'admin.php?page=wpt-modules&tab=categories&action=edit&id=' . $category_id )
+                    : admin_url( 'admin.php?page=wpt-module-categories&action=edit&id=' . $category_id );
+                echo '<script>window.location.href = "' . $target_page . '";</script>';
             }
 
             // Refresh category data if editing
@@ -113,20 +132,24 @@ class WPT_Module_Categories_Admin {
             ));
 
             if ($module_count > 0) {
-                echo '<div class="notice notice-error"><p>' . sprintf(__('Cannot delete category. It has %d modules assigned. Please reassign or delete them first.', 'wpt-optica-core'), $module_count) . '</p></div>';
+                echo '<div class="notice notice-error"><p>' . sprintf(__('Categoria nu poate fi ștearsă. Are %d module asociate. Realocă sau șterge-le înainte.', 'wpt-optica-core'), $module_count) . '</p></div>';
             } else {
                 $wpdb->delete(
                     $wpdb->prefix . 'wpt_module_categories',
                     array('id' => $category_id),
                     array('%d')
                 );
-                echo '<div class="notice notice-success"><p>' . __('Category deleted successfully', 'wpt-optica-core') . '</p></div>';
+                echo '<div class="notice notice-success"><p>' . __('Categoria a fost ștearsă cu succes', 'wpt-optica-core') . '</p></div>';
             }
 
             $action = 'list';
         }
 
         include WPT_HUB_DIR . 'inc/hub/admin/views/module-categories.php';
+
+        if ( $args['embed'] ) {
+            unset( $GLOBALS['wpt_module_categories_embed'], $GLOBALS['wpt_module_categories_base'] );
+        }
     }
 
     /**
@@ -136,13 +159,13 @@ class WPT_Module_Categories_Admin {
         check_ajax_referer('wpt_reorder_categories', 'nonce');
 
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => 'Insufficient permissions'));
+            wp_send_json_error(array('message' => __('Permisiuni insuficiente', 'wpt-optica-core')));
         }
 
         $order = isset($_POST['order']) ? $_POST['order'] : array();
 
         if (empty($order) || !is_array($order)) {
-            wp_send_json_error(array('message' => 'Invalid order data'));
+            wp_send_json_error(array('message' => __('Date de ordonare invalide', 'wpt-optica-core')));
         }
 
         global $wpdb;
@@ -157,7 +180,7 @@ class WPT_Module_Categories_Admin {
             );
         }
 
-        wp_send_json_success(array('message' => 'Categories reordered successfully'));
+        wp_send_json_success(array('message' => __('Ordinea categoriilor a fost actualizată', 'wpt-optica-core')));
     }
 }
 

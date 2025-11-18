@@ -12,37 +12,71 @@ if (!defined('ABSPATH')) {
 
 global $wpdb;
 
-$action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'list';
-$module_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'modules';
 
-// Get all categories
-$categories = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}wpt_module_categories ORDER BY sort_order ASC");
+if ($active_tab === 'categories') {
+    $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'list';
+    $category_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+} else {
+    $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'list';
+    $module_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Get active category (default to first)
-$active_category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : ($categories[0]->slug ?? '');
+    // Get all categories
+    $categories = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}wpt_module_categories ORDER BY sort_order ASC");
 
-// Find active category object
-$active_cat_obj = null;
-foreach ($categories as $cat) {
-    if ($cat->slug === $active_category) {
-        $active_cat_obj = $cat;
-        break;
+    // Get active category (default to first)
+    $active_category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : ($categories[0]->slug ?? '');
+
+    // Find active category object
+    $active_cat_obj = null;
+    foreach ($categories as $cat) {
+        if ($cat->slug === $active_category) {
+            $active_cat_obj = $cat;
+            break;
+        }
     }
-}
 
-if (!$active_cat_obj && !empty($categories)) {
-    $active_cat_obj = $categories[0];
-    $active_category = $active_cat_obj->slug;
+    if (!$active_cat_obj && !empty($categories)) {
+        $active_cat_obj = $categories[0];
+        $active_category = $active_cat_obj->slug;
+    }
 }
 ?>
 
 <div class="wrap wpt-modules">
     <h1 class="wp-heading-inline"><?php _e('Modules', 'wpt-optica-core'); ?></h1>
 
-    <?php if ($action === 'list'): ?>
+    <?php if ($active_tab === 'modules' && $action === 'list'): ?>
         <a href="<?php echo admin_url('admin.php?page=wpt-modules&action=new'); ?>" class="page-title-action">
             <?php _e('Add New Module', 'wpt-optica-core'); ?>
         </a>
+    <?php endif; ?>
+
+    <h2 class="nav-tab-wrapper">
+        <a href="<?php echo admin_url('admin.php?page=wpt-modules'); ?>"
+           class="nav-tab <?php echo $active_tab === 'modules' ? 'nav-tab-active' : ''; ?>">
+            <?php _e('Modules', 'wpt-optica-core'); ?>
+        </a>
+        <a href="<?php echo admin_url('admin.php?page=wpt-modules&tab=categories'); ?>"
+           class="nav-tab <?php echo $active_tab === 'categories' ? 'nav-tab-active' : ''; ?>">
+            <?php _e('Categories', 'wpt-optica-core'); ?>
+        </a>
+    </h2>
+
+    <?php if ($active_tab === 'categories'): ?>
+        <?php
+        $categories_admin = WPT_Module_Categories_Admin::get_instance();
+        $categories_admin->render_page( array(
+            'embed' => true,
+            'base'  => array(
+                'page'  => 'wpt-modules',
+                'query' => array(
+                    'tab' => 'categories',
+                ),
+            ),
+        ) );
+        ?>
+    <?php elseif ($action === 'list'): ?>
         <hr class="wp-header-end">
 
         <div class="wpt-modules-container">

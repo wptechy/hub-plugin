@@ -83,6 +83,7 @@ class WPT_Database {
             addon_name VARCHAR(255) NOT NULL,
             monthly_price DECIMAL(10,2) NOT NULL,
             description TEXT,
+            required_modules JSON DEFAULT NULL,
             is_active BOOLEAN DEFAULT 1,
             created_at DATETIME NOT NULL,
             updated_at DATETIME DEFAULT NULL,

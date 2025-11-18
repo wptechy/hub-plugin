@@ -11,6 +11,34 @@ if (!defined('ABSPATH')) {
 
 global $wpdb;
 
+$wpt_module_categories_base = $GLOBALS['wpt_module_categories_base'] ?? array(
+    'page'  => 'wpt-module-categories',
+    'query' => array(),
+);
+$wpt_module_categories_embed = !empty($GLOBALS['wpt_module_categories_embed']);
+
+if (!function_exists('wpt_module_categories_admin_url')) {
+    function wpt_module_categories_admin_url( $args = array() ) {
+        global $wpt_module_categories_base;
+
+        $params = array_merge( $wpt_module_categories_base['query'], $args );
+        $params = array_filter(
+            $params,
+            static function ( $value ) {
+                return $value !== '' && $value !== null;
+            }
+        );
+
+        $query = http_build_query( $params );
+        $base  = 'admin.php?page=' . $wpt_module_categories_base['page'];
+        if ( $query ) {
+            $base .= '&' . $query;
+        }
+
+        return admin_url( $base );
+    }
+}
+
 // Get category for edit mode
 if ($action === 'edit' && $category_id > 0) {
     $category = $wpdb->get_row($wpdb->prepare(
@@ -23,13 +51,17 @@ if ($action === 'edit' && $category_id > 0) {
         $action = 'list';
     }
 }
+
+if ( 'list' === $action ) {
+    wp_enqueue_script( 'jquery-ui-sortable' );
+}
 ?>
 
-<div class="wrap wpt-module-categories">
+<div class="<?php echo $wpt_module_categories_embed ? 'wpt-module-categories wpt-module-categories--embedded' : 'wrap wpt-module-categories'; ?>">
     <h1 class="wp-heading-inline"><?php _e('Module Categories', 'wpt-optica-core'); ?></h1>
 
     <?php if ($action === 'list'): ?>
-        <a href="<?php echo admin_url('admin.php?page=wpt-module-categories&action=new'); ?>" class="page-title-action">
+        <a href="<?php echo esc_url( wpt_module_categories_admin_url( array( 'action' => 'new' ) ) ); ?>" class="page-title-action">
             <?php _e('Add New Category', 'wpt-optica-core'); ?>
         </a>
         <hr class="wp-header-end">
@@ -89,11 +121,11 @@ if ($action === 'edit' && $category_id > 0) {
                                 <strong><?php echo intval($cat->module_count); ?></strong>
                             </td>
                             <td>
-                                <a href="<?php echo admin_url('admin.php?page=wpt-module-categories&action=edit&id=' . $cat->id); ?>" class="button button-small">
+                                <a href="<?php echo esc_url( wpt_module_categories_admin_url( array( 'action' => 'edit', 'id' => $cat->id ) ) ); ?>" class="button button-small">
                                     <?php _e('Edit', 'wpt-optica-core'); ?>
                                 </a>
                                 <?php if ($cat->module_count == 0): ?>
-                                    <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=wpt-module-categories&action=delete&id=' . $cat->id), 'wpt_delete_category_' . $cat->id); ?>"
+                                    <a href="<?php echo esc_url( wp_nonce_url( wpt_module_categories_admin_url( array( 'action' => 'delete', 'id' => $cat->id ) ), 'wpt_delete_category_' . $cat->id ) ); ?>"
                                        class="button button-small button-link-delete"
                                        onclick="return confirm('<?php esc_attr_e('Are you sure you want to delete this category?', 'wpt-optica-core'); ?>');">
                                         <?php _e('Delete', 'wpt-optica-core'); ?>
@@ -111,9 +143,9 @@ if ($action === 'edit' && $category_id > 0) {
     <?php elseif ($action === 'new' || $action === 'edit'): ?>
         <hr class="wp-header-end">
 
-        <p><a href="<?php echo admin_url('admin.php?page=wpt-module-categories'); ?>">&larr; <?php _e('Back to Categories', 'wpt-optica-core'); ?></a></p>
+        <p><a href="<?php echo esc_url( wpt_module_categories_admin_url() ); ?>">&larr; <?php _e('Back to Categories', 'wpt-optica-core'); ?></a></p>
 
-        <form method="post" action="<?php echo admin_url('admin.php?page=wpt-module-categories&action=' . $action . ($category_id > 0 ? '&id=' . $category_id : '')); ?>">
+        <form method="post" action="<?php echo esc_url( wpt_module_categories_admin_url( array_merge( array( 'action' => $action ), $category_id > 0 ? array( 'id' => $category_id ) : array() ) ) ); ?>">
             <?php wp_nonce_field('wpt_save_category', 'wpt_category_nonce'); ?>
 
             <table class="form-table">
@@ -187,7 +219,7 @@ if ($action === 'edit' && $category_id > 0) {
             <p class="submit">
                 <input type="submit" name="submit" class="button button-primary"
                        value="<?php echo $action === 'edit' ? __('Update Category', 'wpt-optica-core') : __('Create Category', 'wpt-optica-core'); ?>">
-                <a href="<?php echo admin_url('admin.php?page=wpt-module-categories'); ?>" class="button button-secondary">
+                <a href="<?php echo esc_url( wpt_module_categories_admin_url() ); ?>" class="button button-secondary">
                     <?php _e('Cancel', 'wpt-optica-core'); ?>
                 </a>
             </p>
@@ -217,6 +249,10 @@ if ($action === 'edit' && $category_id > 0) {
 .wpt-categories-table tbody tr.ui-sortable-helper {
     background-color: #f0f0f1;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.wpt-module-categories--embedded {
+    margin-top: 20px;
 }
 
 .icon-preview {

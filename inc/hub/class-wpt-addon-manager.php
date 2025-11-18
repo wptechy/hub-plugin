@@ -149,12 +149,95 @@ class WPT_Addon_Manager {
     }
 
     /**
+     * Check if tenant has required modules active for an addon
+     *
+     * @param int $tenant_id
+     * @param string $addon_slug
+     * @return array Array with 'valid' (bool) and 'missing_modules' (array)
+     */
+    public static function check_addon_module_requirements($tenant_id, $addon_slug) {
+        global $wpdb;
+
+        // Get addon details
+        $addon = self::get_addon_by_slug($addon_slug);
+        if (!$addon) {
+            return array(
+                'valid' => false,
+                'missing_modules' => array(),
+                'error' => 'Addon not found',
+            );
+        }
+
+        // If no required modules, addon can be activated
+        if (empty($addon->required_modules)) {
+            return array(
+                'valid' => true,
+                'missing_modules' => array(),
+            );
+        }
+
+        // Decode required modules
+        $required_module_slugs = json_decode($addon->required_modules, true);
+        if (!is_array($required_module_slugs) || empty($required_module_slugs)) {
+            return array(
+                'valid' => true,
+                'missing_modules' => array(),
+            );
+        }
+
+        // Get tenant's active modules
+        $active_modules = $wpdb->get_col($wpdb->prepare(
+            "SELECT m.slug
+            FROM {$wpdb->prefix}wpt_tenant_modules tm
+            JOIN {$wpdb->prefix}wpt_available_modules m ON tm.module_id = m.id
+            WHERE tm.tenant_id = %d AND tm.status = 'active'",
+            $tenant_id
+        ));
+
+        // Check which required modules are missing
+        $missing_modules = array_diff($required_module_slugs, $active_modules);
+
+        return array(
+            'valid' => empty($missing_modules),
+            'missing_modules' => array_values($missing_modules),
+            'required_modules' => $required_module_slugs,
+            'active_modules' => $active_modules,
+        );
+    }
+
+    /**
+     * Get addons that depend on a specific module
+     *
+     * @param string $module_slug
+     * @return array Array of addon objects that require this module
+     */
+    public static function get_addons_requiring_module($module_slug) {
+        global $wpdb;
+
+        $addons = $wpdb->get_results(
+            "SELECT * FROM {$wpdb->prefix}wpt_addon_prices
+            WHERE required_modules IS NOT NULL
+            AND is_active = 1"
+        );
+
+        $dependent_addons = array();
+        foreach ($addons as $addon) {
+            $required_modules = json_decode($addon->required_modules, true);
+            if (is_array($required_modules) && in_array($module_slug, $required_modules)) {
+                $dependent_addons[] = $addon;
+            }
+        }
+
+        return $dependent_addons;
+    }
+
+    /**
      * Activate addon for tenant
      *
      * @param int $tenant_id
      * @param string $addon_slug
      * @param float $price Optional - override default price
-     * @return bool
+     * @return bool|WP_Error
      */
     public static function activate_tenant_addon($tenant_id, $addon_slug, $price = null) {
         global $wpdb;
@@ -162,7 +245,29 @@ class WPT_Addon_Manager {
         // Get addon details
         $addon = self::get_addon_by_slug($addon_slug);
         if (!$addon) {
-            return false;
+            return new WP_Error('addon_not_found', __('Addon not found.', 'wpt-optica-core'));
+        }
+
+        // Check module requirements
+        $requirements = self::check_addon_module_requirements($tenant_id, $addon_slug);
+        if (!$requirements['valid']) {
+            $missing_names = array();
+            foreach ($requirements['missing_modules'] as $module_slug) {
+                $module = $wpdb->get_row($wpdb->prepare(
+                    "SELECT title FROM {$wpdb->prefix}wpt_available_modules WHERE slug = %s",
+                    $module_slug
+                ));
+                $missing_names[] = $module ? $module->title : $module_slug;
+            }
+
+            return new WP_Error(
+                'missing_required_modules',
+                sprintf(
+                    __('Cannot activate addon. Required modules must be active first: %s', 'wpt-optica-core'),
+                    implode(', ', $missing_names)
+                ),
+                array('missing_modules' => $requirements['missing_modules'])
+            );
         }
 
         // Use provided price or default
@@ -207,7 +312,11 @@ class WPT_Addon_Manager {
             array('%d', '%s', '%f', '%s', '%s')
         );
 
-        return $result !== false;
+        if ($result === false) {
+            return new WP_Error('activation_failed', __('Failed to activate addon.', 'wpt-optica-core'));
+        }
+
+        return true;
     }
 
     /**
@@ -276,11 +385,27 @@ class WPT_Addon_Manager {
             'updated_at' => current_time('mysql'),
         );
 
+        // Handle required_modules
+        if (isset($data['required_modules'])) {
+            if (is_array($data['required_modules'])) {
+                $update_data['required_modules'] = json_encode($data['required_modules']);
+            } elseif (is_string($data['required_modules'])) {
+                $update_data['required_modules'] = $data['required_modules'];
+            } else {
+                $update_data['required_modules'] = null;
+            }
+        }
+
+        $formats = array('%s', '%s', '%f', '%s', '%d', '%s');
+        if (isset($update_data['required_modules'])) {
+            $formats[] = '%s';
+        }
+
         $result = $wpdb->update(
             $wpdb->prefix . 'wpt_addon_prices',
             $update_data,
             array('id' => $addon_id),
-            array('%s', '%s', '%f', '%s', '%d', '%s'),
+            $formats,
             array('%d')
         );
 
@@ -310,10 +435,24 @@ class WPT_Addon_Manager {
             'created_at' => current_time('mysql'),
         );
 
+        // Handle required_modules
+        if (isset($data['required_modules'])) {
+            if (is_array($data['required_modules'])) {
+                $insert_data['required_modules'] = json_encode($data['required_modules']);
+            } elseif (is_string($data['required_modules'])) {
+                $insert_data['required_modules'] = $data['required_modules'];
+            }
+        }
+
+        $formats = array('%s', '%s', '%f', '%s', '%d', '%s');
+        if (isset($insert_data['required_modules'])) {
+            $formats[] = '%s';
+        }
+
         $result = $wpdb->insert(
             $wpdb->prefix . 'wpt_addon_prices',
             $insert_data,
-            array('%s', '%s', '%f', '%s', '%d', '%s')
+            $formats
         );
 
         return $result ? $wpdb->insert_id : false;

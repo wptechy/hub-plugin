@@ -24,8 +24,8 @@ class WPT_Admin_Menus {
     public function register_menus() {
         // Main menu
         add_menu_page(
-            __('WPT Platform', 'wpt-optica-core'),
-            __('WPT Platform', 'wpt-optica-core'),
+            __('Platforma WPT', 'wpt-optica-core'),
+            __('Platforma WPT', 'wpt-optica-core'),
             'manage_website_config',
             'wpt-platform',
             array($this, 'render_dashboard'),
@@ -36,8 +36,8 @@ class WPT_Admin_Menus {
         // Dashboard (rename main menu item)
         add_submenu_page(
             'wpt-platform',
-            __('Dashboard', 'wpt-optica-core'),
-            __('Dashboard', 'wpt-optica-core'),
+            __('Tablou de bord', 'wpt-optica-core'),
+            __('Tablou de bord', 'wpt-optica-core'),
             'manage_website_config',
             'wpt-platform',
             array($this, 'render_dashboard')
@@ -46,8 +46,8 @@ class WPT_Admin_Menus {
         // Tenants Management
         add_submenu_page(
             'wpt-platform',
-            __('Tenants', 'wpt-optica-core'),
-            __('Tenants', 'wpt-optica-core'),
+            __('Tenanți', 'wpt-optica-core'),
+            __('Tenanți', 'wpt-optica-core'),
             'manage_website_config',
             'wpt-tenants',
             array($this, 'render_tenants')
@@ -56,8 +56,8 @@ class WPT_Admin_Menus {
         // Modules Marketplace
         add_submenu_page(
             'wpt-platform',
-            __('Modules', 'wpt-optica-core'),
-            __('Modules', 'wpt-optica-core'),
+            __('Module', 'wpt-optica-core'),
+            __('Module', 'wpt-optica-core'),
             'manage_website_config',
             'wpt-modules',
             array($this, 'render_modules')
@@ -66,8 +66,8 @@ class WPT_Admin_Menus {
         // Plans & Pricing
         add_submenu_page(
             'wpt-platform',
-            __('Plans & Pricing', 'wpt-optica-core'),
-            __('Plans & Pricing', 'wpt-optica-core'),
+            __('Planuri și tarife', 'wpt-optica-core'),
+            __('Planuri și tarife', 'wpt-optica-core'),
             'manage_website_config',
             'wpt-plans',
             array($this, 'render_plans')
@@ -76,8 +76,8 @@ class WPT_Admin_Menus {
         // Releases Manager
         add_submenu_page(
             'wpt-platform',
-            __('Releases', 'wpt-optica-core'),
-            __('Releases', 'wpt-optica-core'),
+            __('Versiuni', 'wpt-optica-core'),
+            __('Versiuni', 'wpt-optica-core'),
             'manage_website_config',
             'wpt-releases',
             array($this, 'render_releases')
@@ -86,8 +86,8 @@ class WPT_Admin_Menus {
         // Analytics
         add_submenu_page(
             'wpt-platform',
-            __('Analytics', 'wpt-optica-core'),
-            __('Analytics', 'wpt-optica-core'),
+            __('Statistici', 'wpt-optica-core'),
+            __('Statistici', 'wpt-optica-core'),
             'manage_website_config',
             'wpt-analytics',
             array($this, 'render_analytics')
@@ -96,8 +96,8 @@ class WPT_Admin_Menus {
         // Settings
         add_submenu_page(
             'wpt-platform',
-            __('Settings', 'wpt-optica-core'),
-            __('Settings', 'wpt-optica-core'),
+            __('Setări', 'wpt-optica-core'),
+            __('Setări', 'wpt-optica-core'),
             'manage_website_config',
             'wpt-settings',
             array($this, 'render_settings')
@@ -132,9 +132,9 @@ class WPT_Admin_Menus {
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('wpt_admin_nonce'),
             'i18n' => array(
-                'confirmDelete' => __('Are you sure you want to delete this?', 'wpt-optica-core'),
-                'saved' => __('Saved successfully', 'wpt-optica-core'),
-                'error' => __('An error occurred', 'wpt-optica-core'),
+                'confirmDelete' => __('Sigur vrei să ștergi acest element?', 'wpt-optica-core'),
+                'saved' => __('Salvat cu succes', 'wpt-optica-core'),
+                'error' => __('A apărut o eroare', 'wpt-optica-core'),
             ),
         ));
     }
@@ -195,7 +195,7 @@ class WPT_Admin_Menus {
         check_ajax_referer('wpt_get_user_brands', 'nonce');
 
         if (!current_user_can('manage_website_config')) {
-            wp_send_json_error(array('message' => __('Insufficient permissions', 'wpt-optica-core')));
+            wp_send_json_error(array('message' => __('Permisiuni insuficiente', 'wpt-optica-core')));
         }
 
         $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;

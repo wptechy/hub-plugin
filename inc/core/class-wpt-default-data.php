@@ -130,6 +130,7 @@ class WPT_Default_Data {
                 'addon_name' => 'Tenant Site',
                 'monthly_price' => 500.00,
                 'description' => 'Standalone WordPress site on custom subdomain with full theme and module support',
+                'required_modules' => null, // No module dependencies
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
@@ -138,6 +139,7 @@ class WPT_Default_Data {
                 'addon_name' => 'Extra Offers',
                 'monthly_price' => 5.00,
                 'description' => 'Additional offer quota (price per offer per month)',
+                'required_modules' => json_encode(array('offers')),
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
@@ -146,6 +148,7 @@ class WPT_Default_Data {
                 'addon_name' => 'Extra Jobs',
                 'monthly_price' => 3.00,
                 'description' => 'Additional job posting quota (price per job per month)',
+                'required_modules' => json_encode(array('career')),
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
@@ -154,6 +157,7 @@ class WPT_Default_Data {
                 'addon_name' => 'Premium Location',
                 'monthly_price' => 20.00,
                 'description' => 'Upgrade standard location to premium with full editing and advanced features',
+                'required_modules' => json_encode(array('locations')),
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),
             ),
@@ -163,7 +167,7 @@ class WPT_Default_Data {
             $wpdb->insert(
                 $wpdb->prefix . 'wpt_addon_prices',
                 $addon,
-                array('%s', '%s', '%f', '%s', '%d', '%s')
+                array('%s', '%s', '%f', '%s', '%s', '%d', '%s')
             );
         }
     }
@@ -368,6 +372,36 @@ class WPT_Default_Data {
                 'title' => 'Formulare Contact',
                 'description' => 'Formulare personalizabile pentru contact clienți',
                 'icon' => 'envelope',
+                'price' => 0.00,
+                'is_active' => 1,
+                'created_at' => current_time('mysql'),
+            ),
+            array(
+                'category_id' => $cat_essential,
+                'slug' => 'offers',
+                'title' => 'Oferte',
+                'description' => 'Sistem de gestionare oferte și promoții',
+                'icon' => 'tags',
+                'price' => 0.00,
+                'is_active' => 1,
+                'created_at' => current_time('mysql'),
+            ),
+            array(
+                'category_id' => $cat_essential,
+                'slug' => 'career',
+                'title' => 'Cariere',
+                'description' => 'Sistem de gestionare joburi și candidați',
+                'icon' => 'briefcase',
+                'price' => 0.00,
+                'is_active' => 1,
+                'created_at' => current_time('mysql'),
+            ),
+            array(
+                'category_id' => $cat_essential,
+                'slug' => 'locations',
+                'title' => 'Locații',
+                'description' => 'Gestionare locații și puncte de lucru',
+                'icon' => 'map-marker-alt',
                 'price' => 0.00,
                 'is_active' => 1,
                 'created_at' => current_time('mysql'),

@@ -88,6 +88,37 @@ class WPT_API_Server {
             'callback' => array($this, 'receive_analytics'),
             'permission_callback' => array($this, 'verify_api_key'),
         ));
+
+        // Plan & Subscription
+        register_rest_route(self::API_NAMESPACE, '/tenant/plan', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_tenant_plan'),
+            'permission_callback' => array($this, 'verify_api_key'),
+        ));
+
+        register_rest_route(self::API_NAMESPACE, '/tenant/addons', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_tenant_addons'),
+            'permission_callback' => array($this, 'verify_api_key'),
+        ));
+
+        register_rest_route(self::API_NAMESPACE, '/plans', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_all_plans'),
+            'permission_callback' => array($this, 'verify_api_key'),
+        ));
+
+        register_rest_route(self::API_NAMESPACE, '/addons', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_all_addons'),
+            'permission_callback' => array($this, 'verify_api_key'),
+        ));
+
+        register_rest_route(self::API_NAMESPACE, '/feature-mappings/(?P<feature_key>[a-zA-Z0-9_-]+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_feature_mapping'),
+            'permission_callback' => array($this, 'verify_api_key'),
+        ));
     }
 
     public function verify_api_key($request) {
@@ -438,6 +469,132 @@ class WPT_API_Server {
             error_log('[WPT SYNC] Push successful, marking as pushed');
             update_option('wpt_tenant_config_pushed_' . $tenant->id, current_time('mysql'));
         }
+    }
+
+    /**
+     * Get tenant's plan information
+     */
+    public function get_tenant_plan($request) {
+        $tenant = $request->get_param('_tenant');
+
+        // Get plan details
+        $plan = null;
+        if ($tenant->plan_id) {
+            $plan = WPT_Plan_Manager::get_plan($tenant->plan_id);
+        }
+
+        if (!$plan) {
+            return $this->error_response('Plan not found', 404);
+        }
+
+        return array(
+            'plan_id' => $plan->id,
+            'plan_slug' => $plan->slug,
+            'plan_name' => $plan->name,
+            'plan_price' => floatval($plan->price),
+            'plan_description' => isset($plan->description) ? $plan->description : '',
+            'billing_period' => $plan->billing_period,
+            'features' => json_decode($plan->features, true),
+        );
+    }
+
+    /**
+     * Get tenant's active add-ons
+     */
+    public function get_tenant_addons($request) {
+        $tenant = $request->get_param('_tenant');
+
+        // Get active add-ons
+        $addons = WPT_Addon_Manager::get_tenant_addons($tenant->id);
+
+        $formatted_addons = array();
+        foreach ($addons as $addon) {
+            $formatted_addons[] = array(
+                'addon_id' => $addon->id,
+                'addon_slug' => $addon->addon_slug,
+                'addon_name' => $addon->addon_name,
+                'quantity' => isset($addon->quantity) ? intval($addon->quantity) : 1,
+                'addon_price' => floatval($addon->addon_price),
+                'status' => $addon->status,
+                'description' => isset($addon->description) ? $addon->description : '',
+            );
+        }
+
+        return $formatted_addons;
+    }
+
+    /**
+     * Get feature mapping by key
+     */
+    public function get_feature_mapping($request) {
+        $feature_key = $request->get_param('feature_key');
+
+        $mapping = WPT_Feature_Mapping_Manager::get_mapping($feature_key);
+
+        if (!$mapping) {
+            return $this->error_response('Feature mapping not found', 404);
+        }
+
+        return array(
+            'feature_key' => $mapping->feature_key,
+            'feature_name' => $mapping->feature_name,
+            'feature_type' => $mapping->feature_type,
+            'target_identifier' => $mapping->target_identifier,
+            'is_quota' => (bool) $mapping->is_quota,
+            'description' => $mapping->description,
+        );
+    }
+
+    /**
+     * Get all available plans
+     */
+    public function get_all_plans($request) {
+        $plans = WPT_Plan_Manager::get_plans(true); // Only active plans
+
+        if (empty($plans)) {
+            return array();
+        }
+
+        $formatted_plans = array();
+        foreach ($plans as $plan) {
+            $formatted_plans[] = array(
+                'plan_id' => $plan->id,
+                'plan_slug' => $plan->slug,
+                'plan_name' => $plan->name,
+                'plan_price' => floatval($plan->price),
+                'plan_description' => isset($plan->description) ? $plan->description : '',
+                'billing_period' => $plan->billing_period,
+                'features' => json_decode($plan->features, true),
+            );
+        }
+
+        return $formatted_plans;
+    }
+
+    /**
+     * Get all available addons
+     */
+    public function get_all_addons($request) {
+        $addons = WPT_Addon_Manager::get_addon_prices(true); // Only active addons
+
+        if (empty($addons)) {
+            return array();
+        }
+
+        $formatted_addons = array();
+        foreach ($addons as $addon) {
+            $formatted_addons[] = array(
+                'addon_id' => $addon->id,
+                'addon_slug' => $addon->addon_slug,
+                'addon_name' => $addon->addon_name,
+                'addon_description' => isset($addon->description) ? $addon->description : '',
+                'monthly_price' => floatval($addon->monthly_price),
+                'setup_fee' => 0, // No setup fee column in current schema
+                'is_recurring' => true, // All addons are recurring
+            );
+        }
+
+        return $formatted_addons;
     }
 
     private function success_response($data, $status = 200) {
